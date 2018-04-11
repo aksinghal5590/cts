@@ -3,7 +3,7 @@ CFLAGS=-std=c++11 -O3 -I${TACC_PAPI_INC} -Iinclude
 
 .PHONY: all clean
 
-all: clean cts cts_p
+all: clean cts cts_rand cts_p cts_rand_p
 
 cts:
 	$(CC) $(CFLAGS) src/cts.cpp src/ctsMain.cpp -o bin/cts
