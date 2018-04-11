@@ -9,20 +9,21 @@ using namespace std;
 int main(int argc, char* argv[]) {
 
     int size = 1024;
+    int factor = 100;
     istringstream iss1(argv[1]);
     if (!(iss1 >> size)) {
         cerr << "Invalid number: " << argv[1] << endl;
         return -1;
     }
-    int factor = size;
 
     Coo *mat1 = (Coo*) malloc(size * factor * sizeof(Coo));
     int k = 0;
     int a = 1;
     for(int i = 0; i < size; i++) {
         for(int j = 0; j < factor; j++) {
+            int col = rand() % factor;
             mat1[k].x = i;
-            mat1[k].y = j;
+            mat1[k].y = col;
             mat1[k].val = a++;
             k++;
         }

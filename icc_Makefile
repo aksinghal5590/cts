@@ -1,5 +1,5 @@
 CC=icc
-CFLAGS=-std=c++11 -O0 -I${TACC_PAPI_INC} -Iinclude
+CFLAGS=-std=c++11 -O3 -I${TACC_PAPI_INC} -Iinclude
 
 .PHONY: all clean
 
@@ -8,8 +8,14 @@ all: clean cts cts_p
 cts:
 	$(CC) $(CFLAGS) src/cts.cpp src/ctsMain.cpp -o bin/cts
 
+cts_rand:
+	$(CC) $(CFLAGS) src/cts.cpp src/ctsMainRandom.cpp -o bin/cts_rand
+
 cts_p:
 	$(CC) $(CFLAGS) src/cts.cpp src/ctsMainPAPI.cpp -o bin/cts_p ${TACC_PAPI_LIB}/libpapi.a
+
+cts_rand_p:
+	$(CC) $(CFLAGS) src/cts.cpp src/ctsMainRandomPAPI.cpp -o bin/cts_rand_p ${TACC_PAPI_LIB}/libpapi.a
 
 clean:
 	rm -rf bin/

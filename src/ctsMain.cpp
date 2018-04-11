@@ -2,6 +2,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <iostream>
+#include <sstream>
 #include <type_traits>
 #include <vector>
 
@@ -10,19 +11,21 @@
 using namespace std;
 
 Sptree treeZ;
-int main() {
+int main(int argc, char *argv[]) {
 
-    int size1 = 4096;
-    int factor1 = 4096;
-    int size2 = 4096;
-    int factor2 = 4096;
+    int size = 1024;
+    istringstream iss1(argv[1]);
+    if (!(iss1 >> size)) {
+        cerr << "Invalid number: " << argv[1] << endl;
+        return -1;
+    }
+    int factor = size;
 
-    Coo *mat1 = (Coo*) malloc(size1 * factor1 * sizeof(Coo));
-    Coo *mat2 = (Coo*) malloc(size2 * factor2 * sizeof(Coo));
+    Coo *mat1 = (Coo*) malloc(size * factor * sizeof(Coo));
     int k = 0;
     int a = 1;
-    for(int i = 0; i < factor1; i++) {
-        for(int j = 0; j < size1; j++) {
+    for(int i = 0; i < size; i++) {
+        for(int j = 0; j < factor; j++) {
             mat1[k].x = i;
             mat1[k].y = j;
             mat1[k].val = a++;
@@ -30,41 +33,20 @@ int main() {
         }
         a = 1;
     }
-    k = 0;
-    for(int i = 0; i < factor2; i++) {
-        for(int j = 0; j < size2; j++) {
-            mat2[k].x = i;
-            mat2[k].y = j;
-            mat2[k].val = a++;
-            k++;
-        }
-        a = 1;
-    }
+    Sptree treeX;
 
-    Sptree treeX, treeY;
-
-    Base baseX = {0, 0, size1};
-    Base baseY = {0, 0, size2};
+    Base baseX = {0, 0, size};
 
     auto start = std::chrono::system_clock::now();
-    treeX.createCTS(mat1, size1*factor1, baseX);
-    treeY.createCTS(mat2, size2*factor2, baseY);
+    treeX.createCTS(mat1, size*factor, baseX);
 
-    //treeX.printValues();
-    //treeY.printValues();
-
-    //treeZ.merge(treeX.getTree(), treeY.getTree());
-
-    ::treeZ.multiply(treeX.getTree(), treeY.getTree());
+    ::treeZ.multiply(treeX.getTree(), treeX.getTree());
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double>elapsed_seconds = end - start;
-    cout << "Time taken with size = " << size1 << " : " << elapsed_seconds.count() << "s" << endl;
-
-    //treeZ.printValues();
-    ::treeZ.getTree()[7].printValues();
+    cout << "Size = " << size
+    << "Time taken: " << elapsed_seconds.count() << "s" << endl;
 
     delete[] mat1;
-    delete[] mat2;
     return 0;
 }
