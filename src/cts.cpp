@@ -48,7 +48,7 @@ void multiplyMatrices(int* srcMat1, int* srcMat2, int* targetMat) {
   }
 }
 
-void Sptree::createCTS(Coo* M, int lenM, Base base) {
+void Sptree::createCTS(Coo* M, int lenM, Base& base) {
 
     Coo* Ms[ORTH];
     int lenMs[ORTH];
@@ -59,9 +59,9 @@ void Sptree::createCTS(Coo* M, int lenM, Base base) {
     }
     if (base.len <= B) {
         cout << "In base case - lenM = " << lenM << endl;
-        int* baseVal = new int[B * B];
+        int* baseVal = new int[B * B]();
         for(int i = 0; i < lenM; i++) {
-            baseVal[B*((M[i].x) % B) + (M[i].y) % B] = M[i].val;
+            baseVal[B*((M[i].x) % B) + (M[i].y % B)] = M[i].val;
         }
         Node node(base, baseVal, cPtr, -1);
         tree.emplace_back(node);
@@ -94,7 +94,8 @@ void Sptree::createCTS(Coo* M, int lenM, Base base) {
     }
     bool has_sibling = (nEmpty != 1);
     for (int i = 0; i < ORTH; i++) {
-        cPtr[i] = createSPTree(i, has_sibling, Ms[i], lenMs[i], base.getBase(i), 0);
+        Base childBase = base.getBase(i);
+        cPtr[i] = createSPTree(i, has_sibling, Ms[i], lenMs[i], childBase, 0);
     }
 
     for(int i = 0; i < ORTH; i++) {
@@ -104,7 +105,7 @@ void Sptree::createCTS(Coo* M, int lenM, Base base) {
 }
 
 
-int Sptree::createSPTree(int idx, bool has_sibling, Coo* M, int lenM, Base base, int baseParent) {
+int Sptree::createSPTree(int idx, bool has_sibling, Coo* M, int lenM, Base& base, int baseParent) {
 
     Coo* Ms[ORTH];
     int lenMs[ORTH];
@@ -119,9 +120,9 @@ int Sptree::createSPTree(int idx, bool has_sibling, Coo* M, int lenM, Base base,
         return -1;
 
     if (base.len <= B) {
-        int* baseVal = new int[B * B];
+        int* baseVal = new int[B * B]();
         for(int i = 0; i < lenM; i++) {
-            baseVal[B*((M[i].x) % B) + (M[i].y) % B] = M[i].val;
+            baseVal[B*((M[i].x) % B) + (M[i].y % B)] = M[i].val;
         }
         Node node(base, baseVal, cPtr, baseParent);
         tree.emplace_back(node);
@@ -154,13 +155,15 @@ int Sptree::createSPTree(int idx, bool has_sibling, Coo* M, int lenM, Base base,
 
     bool has_sibling_child = (nEmpty != 1);
     if (!has_sibling && !has_sibling_child) {
-        cPtr[idx] = createSPTree(idx, false, Ms[iOrthant], lenMs[iOrthant], base.getBase(iOrthant), baseParent);
+        Base childBase = base.getBase(iOrthant);
+        cPtr[idx] = createSPTree(idx, false, Ms[iOrthant], lenMs[iOrthant], childBase, baseParent);
     } else {
         Node node(base, NULL, cPtr);
         tree.emplace_back(node);
         index = tree.size() - 1;
         for (int i = 0; i < ORTH; i++) {
-            cPtr[i] = createSPTree(i, has_sibling_child, Ms[i], lenMs[i], base.getBase(i), index);
+            Base childBase = base.getBase(i);
+            cPtr[i] = createSPTree(i, has_sibling_child, Ms[i], lenMs[i], childBase, index);
         }
     }
     for(int i = 0; i < ORTH; i++) {
@@ -253,7 +256,7 @@ void Sptree::merge(vector<Node>& tree1, vector<Node>& tree2, const bool isMultip
 
 int Sptree::mergeNodes(vector<Node>& tree1, vector<Node>& tree2, const int pos1, const int pos2, const int parent) {
 
-    Base newBase = {0, 0, 0};
+    Base newBase;
     int* newVal = NULL;
     int index = -1;
     int count = 0;
@@ -437,7 +440,7 @@ void Sptree::multiplyParts(vector<Node>& tree1, vector<Node>& tree2,
 
     bool isEmpty = true;
     int parent = -1;
-    Base newBase = {0, 0, 0};
+    Base newBase;
     Node node1 = tree1[pos1];
     Node node2 = tree2[pos2];
     int* cPtr = new int[ORTH];
@@ -479,7 +482,7 @@ void Sptree::multiplyParts(vector<Node>& tree1, vector<Node>& tree2,
 
 int Sptree::multiplyNodes(vector<Node>& tree1, vector<Node>& tree2,
     const int pos1, const int pos2, const int parent, const int orthant, const int trueNodePos) {
-    Base newBase = {0, 0, 0};
+    Base newBase;
     int* newVal = NULL;
     int index = -1;
     int* cPtr = new int[ORTH];

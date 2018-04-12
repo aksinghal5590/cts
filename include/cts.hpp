@@ -13,7 +13,19 @@ class Base {
 
     public:
 
-	int x, y, len;
+	   int x, y, len;
+
+        Base() {
+            x = 0;
+            y = 0;
+            len = 0;
+        }
+
+        Base(int x, int y, int len) {
+            this->x = x;
+            this->y = y;
+            this->len = len;
+        }
 
         bool operator==(const Base& base) {
             if(x == base.x && y == base.y && len == base.len) {
@@ -39,14 +51,25 @@ class Base {
         }
 
         Base getBase(int iOrt) {
-            if (iOrt == 0)
-                return {x, y, len / 2};
-            else if (iOrt == 1)
-                return {x, y + len / 2, len / 2};
-            else if (iOrt == 2)
-                return {x + len / 2, y, len / 2};
-            else if (iOrt == 3)
-                return {x + len / 2, y + len / 2, len / 2};
+            Base newBase;
+            if (iOrt == 0) {
+                newBase.x = x;
+                newBase.y = y;
+                newBase.len = len/2;
+            } else if (iOrt == 1) {
+                newBase.x = x;
+                newBase.y = y + len/2;
+                newBase.len = len/2;
+            } else if (iOrt == 2) {
+                newBase.x = x + len/2;
+                newBase.y = y;
+                newBase.len = len/2;
+            } else if (iOrt == 3) {
+                newBase.x = x + len/2;
+                newBase.y = y + len/2;
+                newBase.len = len/2;
+            }
+            return newBase;
         }
 };
 
@@ -164,7 +187,7 @@ class Sptree {
 
         vector<Node> tree;
 
-        int createSPTree(int idx, bool has_sibling, Coo* M, int lenM, Base base, int parent);
+        int createSPTree(int idx, bool has_sibling, Coo* M, int lenM, Base& base, int parent);
 
         void merge(vector<Node>& tree1, vector<Node>& tree2, const bool isMultiply, const int trueNodePos);
 
@@ -212,7 +235,7 @@ class Sptree {
 
         void multiply(vector<Node>& tree1, vector<Node>& tree2);
 
-        void createCTS(Coo* M, int lenM, Base base);
+        void createCTS(Coo* M, int lenM, Base& base);
 
         void merge(vector<Node>& tree1, vector<Node>& tree2) {
             merge(tree1, tree2, false, 0);

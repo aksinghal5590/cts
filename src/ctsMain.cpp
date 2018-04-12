@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
     }
     Sptree treeX;
 
-    Base baseX = {0, 0, size};
+    Base baseX(0, 0, size);
 
     auto start = std::chrono::system_clock::now();
     treeX.createCTS(mat1, size*factor, baseX);

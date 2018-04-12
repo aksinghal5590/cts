@@ -18,36 +18,89 @@ int main(int argc, char *argv[]) {
     istringstream iss1(argv[1]);
     if (!(iss1 >> size)) {
         cerr << "Invalid number: " << argv[1] << endl;
-        return -1;
+    }
+    istringstream iss2(argv[2]);
+    if (!(iss2 >> factor)) {
+        cerr << "Invalid number: " << argv[2] << endl;
     }
 
-    Coo *mat1 = (Coo*) malloc(size * factor * sizeof(Coo));
+    int *AX = new int[size*factor]();
+    int *IAX = new int[size + 1]();
+    int *JAX = new int[size*factor]();
+    int *AY = new int[size*factor]();
+    int *IAY = new int[size + 1]();
+    int *JAY = new int[size*factor]();
+
     int k = 0;
     int a = 1;
     for(int i = 0; i < size; i++) {
         for(int j = 0; j < factor; j++) {
-            int col = rand() % factor;
-            mat1[k].x = i;
-            mat1[k].y = col;
-            mat1[k].val = a++;
+            int col = rand() % size;
+            AX[k] = a++;
+            JAX[k] = col;
             k++;
         }
+        IAX[i+1] = IAX[i] + factor;
         a = 1;
     }
-    Sptree treeX;
-
-    Base baseX = {0, 0, size};
+    srand(time(0));
+    k = 0;
+    a = 1;
+    for(int i = 0; i < size; i++) {
+        for(int j = 0; j < factor; j++) {
+            int col = rand() % size;
+            AY[k] = a++;
+            JAY[k] = col;
+            k++;
+        }
+        IAY[i+1] = IAY[i] + factor;
+        a = 1;
+    }
 
     auto start = std::chrono::system_clock::now();
-    treeX.createCTS(mat1, size*factor, baseX);
 
-    ::treeZ.multiply(treeX.getTree(), treeX.getTree());
+    Coo *mat1 = (Coo*) malloc(size * factor * sizeof(Coo));
+    Coo *mat2 = (Coo*) malloc(size * factor * sizeof(Coo));
+    k = 0;
+    for(int i = 0; i < size; i++) {
+        for(int j = 0; j < IAX[i+1] - IAX[i]; j++) {
+            mat1[k].x = i;
+            mat1[k].y = JAX[k];
+            mat1[k].val = AX[k];
+            k++;
+        }
+    }
+    k = 0;
+    srand(time(0));
+    for(int i = 0; i < size; i++) {
+        for(int j = 0; j < IAY[i+1] - IAY[i]; j++) {
+            mat2[k].x = i;
+            mat2[k].y = JAY[k];
+            mat2[k].val = AY[k];
+            k++;
+        }
+    }
+
+    Sptree treeX;
+    Sptree treeY;
+    Base base(0, 0, size);
+    treeX.createCTS(mat1, size*factor, base);
+    treeX.createCTS(mat2, size*factor, base);
+
+    ::treeZ.multiply(treeX.getTree(), treeY.getTree());
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double>elapsed_seconds = end - start;
     cout << "Size = " << size
-    << "Time taken: " << elapsed_seconds.count() << "s" << endl;
+    << " Time taken: " << elapsed_seconds.count() << "s" << endl;
 
+    delete[] AX;
+    delete[] IAX;
+    delete[] JAX;
+    delete[] AY;
+    delete[] IAY;
+    delete[] JAY;
     delete[] mat1;
+    delete[] mat2;
     return 0;
 }

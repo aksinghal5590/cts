@@ -29,7 +29,7 @@ int main(int argc, char* argv[]) {
         a = 1;
     }
     Sptree treeX;
-    Base baseX = {0, 0, size};
+    Base baseX(0, 0, size);
 
     long_long counters[3] = {0};
     int PAPI_events[] = {PAPI_L1_TCM, PAPI_L2_TCM, PAPI_L3_TCM};
