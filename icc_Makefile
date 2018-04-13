@@ -3,7 +3,7 @@ CFLAGS=-std=c++11 -O3 -I${TACC_PAPI_INC} -Iinclude
 
 .PHONY: all clean
 
-all: clean cts cts_rand cts_p cts_rand_p
+all: clean cts cts_rand cts_p cts_rand_p clear_cache
 
 cts:
 	$(CC) $(CFLAGS) src/cts.cpp src/ctsMain.cpp -o bin/cts
@@ -16,6 +16,9 @@ cts_p:
 
 cts_rand_p:
 	$(CC) $(CFLAGS) src/cts.cpp src/ctsMainRandomPAPI.cpp -o bin/cts_rand_p ${TACC_PAPI_LIB}/libpapi.a
+
+clear_cache:
+	$(CC) $(CFLAGS) src/ClearCache.cpp -o bin/clear_cache
 
 clean:
 	rm -rf bin/
