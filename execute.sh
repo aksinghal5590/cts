@@ -6,13 +6,23 @@
 #SBATCH -p skx-dev	     	# queue (partition) -- normal, development, etc.
 #SBATCH -t 01:30:00        	# run time (hh:mm:ss) -
 
+./bin/clear_cache
 ./bin/cts_rand 4096 50
+./bin/clear_cache
 ./bin/cts_rand 8192 100
+./bin/clear_cache
 ./bin/cts_rand 16384 200
+./bin/clear_cache
 ./bin/cts_rand 32768 400
+./bin/clear_cache
 ./bin/cts_rand 65536 800
+./bin/clear_cache
 ./bin/cts_rand_p 4096 50
+./bin/clear_cache
 ./bin/cts_rand_p 8192 100
+./bin/clear_cache
 ./bin/cts_rand_p 16384 200
+./bin/clear_cache
 ./bin/cts_rand_p 32768 400
+./bin/clear_cache
 ./bin/cts_rand_p 65536 800
