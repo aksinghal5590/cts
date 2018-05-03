@@ -8,6 +8,7 @@
 
 using namespace std;
 
+Sptree treeZ;
 int main(int argc, char* argv[]) {
 
     int size = 1024;
