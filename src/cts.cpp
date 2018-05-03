@@ -6,17 +6,12 @@
 
 #include "cts.hpp"
 
-#define ORTH 4
-#define B 64
-
 using namespace std;
-
-double endM = 0.0;
 
 Sptree tempTrees[200];
 int count = 0;
 
-void copyMatrix(int* srcMat, int* targetMat) {
+void copyMatrix(double* srcMat, double* targetMat) {
     if(srcMat == NULL) {
         return;
     }
@@ -27,7 +22,7 @@ void copyMatrix(int* srcMat, int* targetMat) {
     }
 }
 
-void mergeMatrices(int* srcMat1, int* srcMat2, int* targetMat) {
+void mergeMatrices(double* srcMat1, double* srcMat2, double* targetMat) {
     if(srcMat1 == NULL || srcMat2 == NULL) {
         return;
     }
@@ -38,7 +33,7 @@ void mergeMatrices(int* srcMat1, int* srcMat2, int* targetMat) {
     }
 }
 
-void multiplyMatrices(int* srcMat1, int* srcMat2, int* targetMat) {
+void multiplyMatrices(double* srcMat1, double* srcMat2, double* targetMat) {
   for (int i = 0; i < B; ++i) {
     for (int k = 0; k < B; ++k) {
       for (int j = 0; j < B; ++j) {
@@ -58,8 +53,7 @@ void Sptree::createCTS(Coo* M, int lenM, Base& base) {
         cPtr[i] = -1;
     }
     if (base.len <= B) {
-        cout << "In base case - lenM = " << lenM << endl;
-        int* baseVal = new int[B * B]();
+        double* baseVal = new double[B * B]();
         for(int i = 0; i < lenM; i++) {
             baseVal[B*((M[i].x) % B) + (M[i].y % B)] = M[i].val;
         }
@@ -120,7 +114,8 @@ int Sptree::createSPTree(int idx, bool has_sibling, Coo* M, int lenM, Base& base
         return -1;
 
     if (base.len <= B) {
-        int* baseVal = new int[B * B]();
+        //cout << "In base case" << endl;
+        double* baseVal = new double[B * B]();
         for(int i = 0; i < lenM; i++) {
             baseVal[B*((M[i].x) % B) + (M[i].y % B)] = M[i].val;
         }
@@ -257,7 +252,7 @@ void Sptree::merge(vector<Node>& tree1, vector<Node>& tree2, const bool isMultip
 int Sptree::mergeNodes(vector<Node>& tree1, vector<Node>& tree2, const int pos1, const int pos2, const int parent) {
 
     Base newBase;
-    int* newVal = NULL;
+    double* newVal = NULL;
     int index = -1;
     int count = 0;
     int offset = tree[0].offset;
@@ -365,15 +360,15 @@ int Sptree::mergeNodes(vector<Node>& tree1, vector<Node>& tree2, const int pos1,
     if(count == ORTH) {
         if(node2 == emptyNode) {
             newBase = node1.base;
-            newVal = new int[B * B];
+            newVal = new double[B * B];
             copyMatrix(node1.val, newVal);
         } else if(node1 == emptyNode){
             newBase = node2.base;
-            newVal = new int[B * B];
+            newVal = new double[B * B];
             copyMatrix(node2.val, newVal);
         } else if(!(node2 == emptyNode) && !(node1 == emptyNode)) {
             newBase = node1.base;
-            newVal = new int[B * B];
+            newVal = new double[B * B];
             mergeMatrices(node1.val, node2.val, newVal);
         } else {
             cerr << "Something terrible happened!!\r";
@@ -483,7 +478,7 @@ void Sptree::multiplyParts(vector<Node>& tree1, vector<Node>& tree2,
 int Sptree::multiplyNodes(vector<Node>& tree1, vector<Node>& tree2,
     const int pos1, const int pos2, const int parent, const int orthant, const int trueNodePos) {
     Base newBase;
-    int* newVal = NULL;
+    double* newVal = NULL;
     int index = -1;
     int* cPtr = new int[ORTH];
     for(int i = 0; i < ORTH; i++) {
@@ -510,7 +505,7 @@ int Sptree::multiplyNodes(vector<Node>& tree1, vector<Node>& tree2,
     }
     //cout << "Base Case - pos1 = " << pos1 << " pos2 = " << pos2 << endl;
     if(!(node1 == emptyNode) && !(node2 == emptyNode) && node1.base.len <= B && node2.base.len <= B) {
-        newVal = new int[B * B]();
+        newVal = new double[B * B]();
         multiplyMatrices(node1.val, node2.val, newVal);
         newBase = tree[parent - trueNodePos].base.getBase(orthant);
         Node newNode(newBase, newVal, cPtr, parent, trueNodePos);

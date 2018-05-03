@@ -77,7 +77,8 @@ class Coo {
 
     public:
 
-	int x, y, val;
+	int x, y;
+    double val;
 };
 
 class Node {
@@ -85,7 +86,7 @@ class Node {
     public:
 
         Base base;
-        int* val;
+        double* val;
         int* cPtr;
         int parent;
         int offset;
@@ -98,12 +99,12 @@ class Node {
             offset = 0;
         }
 
-        Node(Base base, int* val, int* cPtr) {
+        Node(Base base, double* val, int* cPtr) {
             this->base = base;
             this->parent = -1;
             this->offset = 0;
             if(val != NULL) {
-                this->val = new int[B * B];
+                this->val = new double[B * B];
                 for(int i = 0; i < B * B; i++) {
                     this->val[i] = val[i];
                 }
@@ -116,12 +117,12 @@ class Node {
             }
         }
 
-        Node(Base base, int* val, int* cPtr, int parent) {
+        Node(Base base, double* val, int* cPtr, int parent) {
             this->base = base;
             this->parent = parent;
             this->offset = 0;
             if(val != NULL) {
-                this->val = new int[B * B];
+                this->val = new double[B * B];
                 for(int i = 0; i < B * B; i++) {
                     this->val[i] = val[i];
                 }
@@ -134,12 +135,12 @@ class Node {
             }
         }
 
-        Node(Base base, int* val, int* cPtr, int parent, int offset) {
+        Node(Base base, double* val, int* cPtr, int parent, int offset) {
             this->base = base;
             this->parent = parent;
             this->offset = offset;
             if(val != NULL) {
-                this->val = new int[B * B];
+                this->val = new double[B * B];
                 for(int i = 0; i < B * B; i++) {
                     this->val[i] = val[i];
                 }
@@ -180,6 +181,15 @@ class Node {
                 cout << ")";
             }
             cout << endl;
+        }
+
+        ~Node() {
+            if(val != NULL) {
+                delete[] val;
+            }
+            if(cPtr != NULL) {
+                delete[] cPtr;
+            }
         }
 };
 

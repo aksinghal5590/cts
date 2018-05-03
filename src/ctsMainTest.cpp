@@ -8,8 +8,6 @@
 
 #include "cts.hpp"
 
-#define B 64
-
 using namespace std;
 
 void mmIKJ(int *mZ, int row0, int col0, int *mX, int row1, int col1, int *mY,

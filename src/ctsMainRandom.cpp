@@ -13,93 +13,67 @@ using namespace std;
 Sptree treeZ;
 int main(int argc, char *argv[]) {
 
-    int size = 1024;
-    int factor = 100;
-    istringstream iss1(argv[1]);
-    if (!(iss1 >> size)) {
+    double fraction;
+    istringstream iss2(argv[1]);
+    if (!(iss2 >> fraction)) {
         cerr << "Invalid number: " << argv[1] << endl;
+        return -1;
     }
-    istringstream iss2(argv[2]);
-    if (!(iss2 >> factor)) {
-        cerr << "Invalid number: " << argv[2] << endl;
-    }
-
-    int *AX = new int[size*factor]();
-    int *IAX = new int[size + 1]();
-    int *JAX = new int[size*factor]();
-    int *AY = new int[size*factor]();
-    int *IAY = new int[size + 1]();
-    int *JAY = new int[size*factor]();
-
-    int k = 0;
-    int a = 1;
-    for(int i = 0; i < size; i++) {
-        for(int j = 0; j < factor; j++) {
-            int col = rand() % size;
-            AX[k] = a++;
-            JAX[k] = col;
-            k++;
+    int size;
+    int n, m, elemCount;
+    cin >> n >> m >> elemCount;
+    n = (n >= m) ? n : m;
+    int ceil2 = 2;
+    while(1) {
+        if(n <= ceil2) {
+            size = ceil2;
+            break;
         }
-        IAX[i+1] = IAX[i] + factor;
-        a = 1;
+        ceil2 *= 2;
     }
-    srand(time(0));
+    int factor = n * fraction;
+    Coo *mat1 = (Coo*) malloc(elemCount * sizeof(Coo));
+    Coo *mat2 = (Coo*) malloc(n * factor * sizeof(Coo));
+
+    int k;
+    int i, j;
+    double val;
+    for(k = 0; k < elemCount; k++) {
+        cin >> i >> j >> val;
+        mat1[k].x = i - 1;
+        mat1[k].y = j - 1;
+        mat1[k].val = val;
+    }
     k = 0;
-    a = 1;
-    for(int i = 0; i < size; i++) {
+    srand(time(NULL));
+    int a = 1;
+    for(int i = 0; i < n; i++) {
         for(int j = 0; j < factor; j++) {
-            int col = rand() % size;
-            AY[k] = a++;
-            JAY[k] = col;
+            mat2[k].x = i;
+            mat2[k].y = rand() % n;
+            mat2[k].val = a++;
             k++;
         }
-        IAY[i+1] = IAY[i] + factor;
         a = 1;
     }
 
     auto start = std::chrono::system_clock::now();
 
-    Coo *mat1 = (Coo*) malloc(size * factor * sizeof(Coo));
-    Coo *mat2 = (Coo*) malloc(size * factor * sizeof(Coo));
-    k = 0;
-    for(int i = 0; i < size; i++) {
-        for(int j = 0; j < IAX[i+1] - IAX[i]; j++) {
-            mat1[k].x = i;
-            mat1[k].y = JAX[k];
-            mat1[k].val = AX[k];
-            k++;
-        }
-    }
-    k = 0;
-    srand(time(0));
-    for(int i = 0; i < size; i++) {
-        for(int j = 0; j < IAY[i+1] - IAY[i]; j++) {
-            mat2[k].x = i;
-            mat2[k].y = JAY[k];
-            mat2[k].val = AY[k];
-            k++;
-        }
-    }
-
     Sptree treeX;
     Sptree treeY;
     Base base(0, 0, size);
-    treeX.createCTS(mat1, size*factor, base);
-    treeX.createCTS(mat2, size*factor, base);
+    treeX.createCTS(mat2, n * factor, base);
+    treeX.createCTS(mat1, elemCount, base);
 
+    cout << "Trees created" << endl;
     ::treeZ.multiply(treeX.getTree(), treeY.getTree());
 
+    cout << "Trees multiplied" << endl;
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double>elapsed_seconds = end - start;
     cout << "Size = " << size
     << " Time taken: " << elapsed_seconds.count() << "s" << endl;
 
-    delete[] AX;
-    delete[] IAX;
-    delete[] JAX;
-    delete[] AY;
-    delete[] IAY;
-    delete[] JAY;
     delete[] mat1;
     delete[] mat2;
     return 0;
