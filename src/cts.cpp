@@ -6,8 +6,6 @@
 
 #include "cts.hpp"
 
-using namespace std;
-
 Sptree tempTrees[200];
 int count = 0;
 
@@ -59,7 +57,9 @@ void Sptree::createCTS(Coo* M, int lenM, Base& base) {
         }
         Node node(base, baseVal, cPtr, -1);
         tree.emplace_back(node);
-        delete[] baseVal;
+        if(baseVal != NULL) {
+            delete[] baseVal;
+        }
         return;
     }
 
@@ -79,7 +79,7 @@ void Sptree::createCTS(Coo* M, int lenM, Base& base) {
     for (int i = 0; i < ORTH; i++) {
         if (lenMs[i] > 0) {
             nEmpty++;
-            Ms[i] = (Coo*) malloc(lenMs[i] * sizeof(Coo));
+            Ms[i] = new Coo[lenMs[i]];
         }
     }
     for (int i = 0; i < lenM; i++) {
@@ -95,11 +95,19 @@ void Sptree::createCTS(Coo* M, int lenM, Base& base) {
     for(int i = 0; i < ORTH; i++) {
         tree[0].cPtr[i] = cPtr[i];
     }
+    if(Ms != NULL) {
+        for(int i = 0; i < ORTH; i++) {
+            delete[] Ms[i];
+        }
+    }
     delete[] cPtr;
 }
 
 
 int Sptree::createSPTree(int idx, bool has_sibling, Coo* M, int lenM, Base& base, int baseParent) {
+
+    if (lenM == 0)
+        return -1;
 
     Coo* Ms[ORTH];
     int lenMs[ORTH];
@@ -110,18 +118,16 @@ int Sptree::createSPTree(int idx, bool has_sibling, Coo* M, int lenM, Base& base
         cPtr[i] = -1;
     }
 
-    if (lenM == 0)
-        return -1;
-
     if (base.len <= B) {
-        //cout << "In base case" << endl;
         double* baseVal = new double[B * B]();
         for(int i = 0; i < lenM; i++) {
             baseVal[B*((M[i].x) % B) + (M[i].y % B)] = M[i].val;
         }
         Node node(base, baseVal, cPtr, baseParent);
         tree.emplace_back(node);
-        delete[] baseVal;
+        if(baseVal != NULL) {
+            delete[] baseVal;
+        }
         return tree.size() - 1;
     }
 
@@ -175,7 +181,7 @@ int Sptree::createSPTree(int idx, bool has_sibling, Coo* M, int lenM, Base& base
     return index;
 }
 
-void Sptree::merge(vector<Node>& tree1, vector<Node>& tree2, const bool isMultiply, const int trueNodePos) {
+void Sptree::merge(std::vector<Node>& tree1, std::vector<Node>& tree2, const bool isMultiply, const int trueNodePos) {
 
     if(tree1.empty() && tree2.empty()) {
         return;
@@ -249,7 +255,7 @@ void Sptree::merge(vector<Node>& tree1, vector<Node>& tree2, const bool isMultip
     delete[] cPtr;
 }
 
-int Sptree::mergeNodes(vector<Node>& tree1, vector<Node>& tree2, const int pos1, const int pos2, const int parent) {
+int Sptree::mergeNodes(std::vector<Node>& tree1, std::vector<Node>& tree2, const int pos1, const int pos2, const int parent) {
 
     Base newBase;
     double* newVal = NULL;
@@ -371,7 +377,7 @@ int Sptree::mergeNodes(vector<Node>& tree1, vector<Node>& tree2, const int pos1,
             newVal = new double[B * B];
             mergeMatrices(node1.val, node2.val, newVal);
         } else {
-            cerr << "Something terrible happened!!\r";
+            std::cerr << "Something terrible happened!!\r";
             exit(1);
         }
         int orth = tree[trueNodePos].base.getIOrthant(newBase.x, newBase.y);
@@ -398,13 +404,13 @@ int Sptree::mergeNodes(vector<Node>& tree1, vector<Node>& tree2, const int pos1,
     return index;
 }
 
-void Sptree::multiply(vector<Node>& tree1, vector<Node>& tree2) {
+void Sptree::multiply(std::vector<Node>& tree1, std::vector<Node>& tree2) {
     Sptree& tempA = ::tempTrees[::count++];
     Sptree& tempB = ::tempTrees[::count++];
     multiply(tempA, tempB, tree1, tree2, 0, 0, -1, 0);
 }
 
-void Sptree::multiply(Sptree& tempA, Sptree& tempB, vector<Node>& tree1, vector<Node>& tree2,
+void Sptree::multiply(Sptree& tempA, Sptree& tempB, std::vector<Node>& tree1, std::vector<Node>& tree2,
     const int pos1, const int pos2, const int parentPos, const int trueNodePos) {
 
     tempA.multiplyParts(tree1, tree2, pos1, pos2, parentPos, 0, 0, trueNodePos);
@@ -426,7 +432,7 @@ void Sptree::multiply(Sptree& tempA, Sptree& tempB, vector<Node>& tree1, vector<
     }
 }
 
-void Sptree::multiplyParts(vector<Node>& tree1, vector<Node>& tree2,
+void Sptree::multiplyParts(std::vector<Node>& tree1, std::vector<Node>& tree2,
     const int pos1, const int pos2, const int parentPos, const int xPos, const int yPos, const int trueNodePos) {
 
     if(tree1.empty() || tree2.empty()) {
@@ -475,7 +481,7 @@ void Sptree::multiplyParts(vector<Node>& tree1, vector<Node>& tree2,
     delete[] cPtr;
 }
 
-int Sptree::multiplyNodes(vector<Node>& tree1, vector<Node>& tree2,
+int Sptree::multiplyNodes(std::vector<Node>& tree1, std::vector<Node>& tree2,
     const int pos1, const int pos2, const int parent, const int orthant, const int trueNodePos) {
     Base newBase;
     double* newVal = NULL;

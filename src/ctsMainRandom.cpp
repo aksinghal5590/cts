@@ -10,7 +10,6 @@
 
 using namespace std;
 
-Sptree treeZ;
 int main(int argc, char *argv[]) {
 
     double fraction;
@@ -32,8 +31,8 @@ int main(int argc, char *argv[]) {
         ceil2 *= 2;
     }
     int factor = n * fraction;
-    Coo *mat1 = (Coo*) malloc(elemCount * sizeof(Coo));
-    Coo *mat2 = (Coo*) malloc(n * factor * sizeof(Coo));
+    Coo *mat1 = new Coo[elemCount];
+    Coo *mat2 = new Coo[n * factor];
 
     int k;
     int i, j;
@@ -61,14 +60,16 @@ int main(int argc, char *argv[]) {
 
     Sptree treeX;
     Sptree treeY;
+    Sptree treeZ;
     Base base(0, 0, size);
-    treeX.createCTS(mat2, n * factor, base);
+    cout << "Creating Trees" << endl;
     treeX.createCTS(mat1, elemCount, base);
+    treeY.createCTS(mat2, n * factor, base);
 
     cout << "Trees created" << endl;
-    ::treeZ.multiply(treeX.getTree(), treeY.getTree());
+    treeZ.merge(treeX.getTree(), treeY.getTree());
+    //treeZ.multiply(treeX.getTree(), treeY.getTree());
 
-    cout << "Trees multiplied" << endl;
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double>elapsed_seconds = end - start;
     cout << "Size = " << size

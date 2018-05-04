@@ -7,8 +7,6 @@
 #include <vector>
 #include <iostream>
 
-using namespace std;
-
 class Base {
 
     public:
@@ -19,6 +17,12 @@ class Base {
             x = 0;
             y = 0;
             len = 0;
+        }
+
+        Base(const Base& base) {
+            x = base.x;
+            y = base.y;
+            len = base.len;
         }
 
         Base(int x, int y, int len) {
@@ -35,7 +39,7 @@ class Base {
         }
 
         void printValues() {
-            cout << "(" << x << ", " << y << ", " << len << ")";
+            std::cout << "(" << x << ", " << y << ", " << len << ")";
         }
 
         int getIOrthant(int x, int y) {
@@ -92,11 +96,28 @@ class Node {
         int offset;
 
         Node() {
-            Base base;
             val = NULL;
             cPtr = NULL;
             parent = -1;
             offset = 0;
+        }
+
+        Node(const Node& node) {
+            base = node.base;
+            parent = node.parent;
+            offset = node.offset;
+            if(node.val != NULL) {
+                val = new double[B * B];
+                for(int i = 0; i < B * B; i++) {
+                    val[i] = node.val[i];
+                }
+            } else {
+                val = NULL;
+            }
+            cPtr = new int[ORTH];
+            for(int i = 0; i < ORTH; i++) {
+                cPtr[i] = node.cPtr[i];
+            }
         }
 
         Node(Base base, double* val, int* cPtr) {
@@ -162,25 +183,25 @@ class Node {
 
         void printValues() {
             base.printValues();
-            cout << "(";
+            std::cout << "(";
             for(int i = 0; i < ORTH; i++) {
-                cout << cPtr[i];
+                std::cout << cPtr[i];
                 if(i < ORTH-1) {
-                    cout << ", ";
+                    std::cout << ", ";
                 }
             }
-            cout << ")(" << parent << ")";
-            cout << "(" << offset << ")";
+            std::cout << ")(" << parent << ")";
+            std::cout << "(" << offset << ")";
             if(val != NULL) {
-                cout << "(";
+                std::cout << "(";
                 for(int i = 0; i < B; i++) {
                     for(int j = 0; j < B; j++) {
-                        cout << val[i*B + j] << ",";
+                        std::cout << val[i*B + j] << ",";
                     }
                 }
-                cout << ")";
+                std::cout << ")";
             }
-            cout << endl;
+            std::cout << std::endl;
         }
 
         ~Node() {
@@ -195,21 +216,21 @@ class Node {
 
 class Sptree {
 
-        vector<Node> tree;
+        std::vector<Node> tree;
 
         int createSPTree(int idx, bool has_sibling, Coo* M, int lenM, Base& base, int parent);
 
-        void merge(vector<Node>& tree1, vector<Node>& tree2, const bool isMultiply, const int trueNodePos);
+        void merge(std::vector<Node>& tree1, std::vector<Node>& tree2, const bool isMultiply, const int trueNodePos);
 
-        int mergeNodes(vector<Node>& tree1, vector<Node>& tree2, const int pos1, const int pos2, const int parent);
+        int mergeNodes(std::vector<Node>& tree1, std::vector<Node>& tree2, const int pos1, const int pos2, const int parent);
 
-        void multiply(Sptree& tempA, Sptree& tempB, vector<Node>& tree1, vector<Node>& tree2,
+        void multiply(Sptree& tempA, Sptree& tempB, std::vector<Node>& tree1, std::vector<Node>& tree2,
             const int pos1, const int pos2, const int parentPos, const int trueNodePos);
 
-        void multiplyParts(vector<Node>& tree1, vector<Node>& tree2, const int pos1, const int pos2,
+        void multiplyParts(std::vector<Node>& tree1, std::vector<Node>& tree2, const int pos1, const int pos2,
             const int parentPos, const int xPos, const int yPos, const int trueNodePos);
 
-        int multiplyNodes(vector<Node>& tree1, vector<Node>& tree2, const int pos1, const int pos2,
+        int multiplyNodes(std::vector<Node>& tree1, std::vector<Node>& tree2, const int pos1, const int pos2,
             const int parent, const int orthant, const int trueNodePos);
 
     public:
@@ -217,37 +238,28 @@ class Sptree {
         Sptree() {
         }
 
-        Sptree(vector<Node> tree) {
+        Sptree(std::vector<Node> tree) {
             this->tree = tree;
         }
 
-        vector<Node>& getTree() {
+        std::vector<Node>& getTree() {
             return tree;
         }
 
         void printValues() {
-            cout << "(" << tree.size() << ") ";
-            for(vector<Node>::iterator it = tree.begin(); it != tree.end(); it++) {
+            std::cout << "(" << tree.size() << ") ";
+            for(std::vector<Node>::iterator it = tree.begin(); it != tree.end(); it++) {
                 it->printValues();
-                //cout << it->val;
-                cout << "  ";
-                /*cout << "(";
-                //cout << it->parent << ")(";
-                for(int i = 0; i < ORTH; i++) {
-                    cout << it->cPtr[i];
-                    if(i < ORTH-1)
-                        cout << ",";
-                }
-                cout << ")  ";*/
+                std::cout << "  ";
             }
-            cout << endl;
+            std::cout << std::endl;
         }
 
-        void multiply(vector<Node>& tree1, vector<Node>& tree2);
+        void multiply(std::vector<Node>& tree1, std::vector<Node>& tree2);
 
         void createCTS(Coo* M, int lenM, Base& base);
 
-        void merge(vector<Node>& tree1, vector<Node>& tree2) {
+        void merge(std::vector<Node>& tree1, std::vector<Node>& tree2) {
             merge(tree1, tree2, false, 0);
         }
 

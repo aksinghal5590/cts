@@ -8,7 +8,6 @@
 
 using namespace std;
 
-Sptree treeZ;
 int main(int argc, char* argv[]) {
 
     int size = 1024;
@@ -84,11 +83,12 @@ int main(int argc, char* argv[]) {
 
     Sptree treeX;
     Sptree treeY;
+    Sptree treeZ;
     Base base(0, 0, size);
     treeX.createCTS(mat1, size*factor, base);
     treeX.createCTS(mat2, size*factor, base);
 
-    ::treeZ.multiply(treeX.getTree(), treeY.getTree());
+    treeZ.multiply(treeX.getTree(), treeY.getTree());
 
     PAPI_read_counters(counters, 3);
 
