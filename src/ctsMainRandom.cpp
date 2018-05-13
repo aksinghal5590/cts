@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <chrono>
 #include <ctime>
 #include <cstdlib>
@@ -10,6 +11,7 @@
 
 using namespace std;
 
+Sptree treeZ;
 int main(int argc, char *argv[]) {
 
     double fraction;
@@ -18,10 +20,44 @@ int main(int argc, char *argv[]) {
         cerr << "Invalid number: " << argv[1] << endl;
         return -1;
     }
-    int size;
+
     int n, m, elemCount;
     cin >> n >> m >> elemCount;
     n = (n >= m) ? n : m;
+    int factor = (int)((double)n * fraction);
+    Coo *mat1 = new Coo[elemCount];
+    Coo *mat2 = new Coo[n * factor];
+
+    int x, y;
+    double val;
+    vector<Mtx> inList;
+    for(int i = 0; i < elemCount; i++) {
+        cin >> x >> y >> val;
+        inList.emplace_back(Mtx(x, y, val));
+    }
+    sort(inList.begin(), inList.end());
+    for(int i = 0; i < inList.size(); i++) {
+        mat1[i].x = inList[i].x - 1;
+        mat1[i].y = inList[i].y - 1;
+        mat1[i].val = inList[i].val;
+    }
+
+    int p = 0;
+    int* col = new int[factor]();
+    for(int i = 0; i < n; i++) {
+        for(int j = 0; j < factor; j++) {
+            col[j] = rand() % n;
+        }
+        sort(col, col + factor);
+        for(int j = 0; j < factor; j++) {
+            mat2[p].x = i;
+            mat2[p].y = col[j];
+            mat2[p].val = (rand() % 200) - 100;
+            p++;
+        }
+    }
+
+    int size = 0;
     int ceil2 = 2;
     while(1) {
         if(n <= ceil2) {
@@ -30,51 +66,31 @@ int main(int argc, char *argv[]) {
         }
         ceil2 *= 2;
     }
-    int factor = n * fraction;
-    Coo *mat1 = new Coo[elemCount];
-    Coo *mat2 = new Coo[n * factor];
-
-    int k;
-    int i, j;
-    double val;
-    for(k = 0; k < elemCount; k++) {
-        cin >> i >> j >> val;
-        mat1[k].x = i - 1;
-        mat1[k].y = j - 1;
-        mat1[k].val = val;
-    }
-    k = 0;
-    srand(time(NULL));
-    int a = 1;
-    for(int i = 0; i < n; i++) {
-        for(int j = 0; j < factor; j++) {
-            mat2[k].x = i;
-            mat2[k].y = rand() % n;
-            mat2[k].val = a++;
-            k++;
-        }
-        a = 1;
-    }
+    Base base(0, 0, size);
 
     auto start = std::chrono::system_clock::now();
 
     Sptree treeX;
     Sptree treeY;
-    Sptree treeZ;
-    Base base(0, 0, size);
-    cout << "Creating Trees" << endl;
+
     treeX.createCTS(mat1, elemCount, base);
+    //treeY.createCTS(mat1, elemCount, base);
     treeY.createCTS(mat2, n * factor, base);
 
-    cout << "Trees created" << endl;
-    treeZ.merge(treeX.getTree(), treeY.getTree());
-    //treeZ.multiply(treeX.getTree(), treeY.getTree());
+    cout << "treeX size = " << treeX.getTree().size() << endl;
+    cout << "treeY size = " << treeY.getTree().size() << endl;
+
+    ::treeZ.multiply(treeX.getTree(), treeY.getTree());
+
+    cout << "treeZ size = " << ::treeZ.getTree().size() << endl;
 
     auto end = std::chrono::system_clock::now();
     std::chrono::duration<double>elapsed_seconds = end - start;
     cout << "Size = " << size
-    << " Time taken: " << elapsed_seconds.count() << "s" << endl;
+    << " Base = " << B
+    << " Time taken by serial execution: " << elapsed_seconds.count() << "s" << endl;
 
+    delete[] col;
     delete[] mat1;
     delete[] mat2;
     return 0;

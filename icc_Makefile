@@ -3,19 +3,22 @@ CFLAGS=-std=c++11 -O3 -I${TACC_PAPI_INC} -Iinclude
 
 .PHONY: all clean
 
-all: clean cts cts_rand cts_p cts_rand_p clear_cache
-
-cts:
-	$(CC) $(CFLAGS) src/cts.cpp src/ctsMain.cpp -o bin/cts
+all: clean cts_rand cts_rand_par cts_rand_p cts_test data_gen clear_cache
 
 cts_rand:
 	$(CC) $(CFLAGS) src/cts.cpp src/ctsMainRandom.cpp -o bin/cts_rand
 
-cts_p:
-	$(CC) $(CFLAGS) src/cts.cpp src/ctsMainPAPI.cpp -o bin/cts_p ${TACC_PAPI_LIB}/libpapi.a
+cts_rand_par:
+	$(CC) $(CFLAGS) -fcilkplus src/ctsParallel.cpp src/ctsMainRandomParallel.cpp -o bin/cts_rand_par
 
 cts_rand_p:
 	$(CC) $(CFLAGS) src/cts.cpp src/ctsMainRandomPAPI.cpp -o bin/cts_rand_p ${TACC_PAPI_LIB}/libpapi.a
+
+cts_test:
+	$(CC) $(CFLAGS) src/cts.cpp src/ctsMainTest.cpp -o bin/cts_test
+
+data_gen:
+	$(CC) $(CFLAGS) src/dataGenerator.cpp -o bin/data_gen
 
 clear_cache:
 	$(CC) $(CFLAGS) src/ClearCache.cpp -o bin/clear_cache

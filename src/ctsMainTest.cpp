@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <chrono>
 #include <ctime>
 #include <cstdlib>
@@ -9,6 +10,10 @@
 #include "cts.hpp"
 
 using namespace std;
+
+extern double mmTime;
+Sptree treeZ;
+
 
 void mmIKJ(int *mZ, int row0, int col0, int *mX, int row1, int col1, int *mY,
        int row2, int col2, int n, int size) {
@@ -30,64 +35,72 @@ void printMatrix(int *m, int row, int col) {
     }
 }
 
-Sptree treeZ;
 int main(int argc, char *argv[]) {
 
-    int size = 1024;
-    int factor = 100;
-    istringstream iss1(argv[1]);
-    if (!(iss1 >> size)) {
-        cerr << "Invalid number: " << argv[1] << endl;
-    }
-    istringstream iss2(argv[2]);
-    if (!(iss2 >> factor)) {
-        cerr << "Invalid number: " << argv[2] << endl;
-    }
+    int size;
+    int factor;
+
+    cin >> size >> size >> factor;
 
     int *mX = new int[size*size]();
     int *mY = new int[size*size]();
     int *mZ = new int[size*size]();
     Coo *mat1 = (Coo*) malloc(size * factor * sizeof(Coo));
     Coo *mat2 = (Coo*) malloc(size * factor * sizeof(Coo));
+    vector<Mtx> list1;
+    vector<Mtx> list2;
 
-    int k = 0;
-    int a = 1;
-    for(int i = 0; i < size; i++) {
-        for(int j = 0; j < factor; j++) {
-            int col = rand() % size;
-            mX[i * size + col] = a;
-            mat1[k].x = i;
-            mat1[k].y = col;
-            mat1[k].val = a;
-            k++;
-            a++;
-        }
-        a = 1;
+    int x, y;
+    double val;
+    for(int i = 0; i < size*factor; i++) {
+        cin >> x >> y >> val;
+        list1.emplace_back(Mtx(x, y ,val));
     }
-
-    k = 0;
-    a = 1;
-    for(int i = 0; i < size; i++) {
-        for(int j = 0; j < factor; j++) {
-            int col = rand() % size;
-            mY[i * size + col] = a;
-            mat2[k].x = i;
-            mat2[k].y = col;
-            mat2[k].val = a;
-            k++;
-            a++;
-        }
-        a = 1;
+    for(int i = 0; i < size*factor; i++) {
+        cin >> x >> y >> val;
+        list2.emplace_back(Mtx(x, y ,val));
     }
+    sort(list1.begin(), list1.end());
+    sort(list2.begin(), list2.end());
 
-    mmIKJ(mZ, 0, 0, mX, 0, 0, mY, 0, 0, size, size);
+    for(int i = 0; i < size * factor; i++) {
+        mat1[i].x = list1[i].x;
+        mat1[i].y = list1[i].y;
+        mat1[i].val = list1[i].val;
+        mX[mat1[i].x * size + mat1[i].y] = mat1[i].val;
+    }
+    for(int i = 0; i < size * factor; i++) {
+        mat2[i].x = list2[i].x;
+        mat2[i].y = list2[i].y;
+        mat2[i].val = list2[i].val;
+        mY[mat2[i].x * size + mat2[i].y] = mat2[i].val;
+    }
+    Sptree treeX;
+    Sptree treeY;
 
-    Sptree treeX, treeY;
-    Base base(0, 0, size);
-    treeX.createCTS(mat1, size*factor, base);
-    treeY.createCTS(mat2, size*factor, base);
+    Base baseX(0, 0, size);
+
+    auto start = std::chrono::system_clock::now();
+
+    treeX.createCTS(mat1, size*factor, baseX);
+    treeY.createCTS(mat2, size*factor, baseX);
+
+    cout << "treeX = " << treeX.getTree().size() << endl;
+    cout << "treeY = " << treeY.getTree().size() << endl;
+    //treeX.printValues();
+    //treeY.printValues();
 
     ::treeZ.multiply(treeX.getTree(), treeY.getTree());
+
+    cout << "treeZ = " << ::treeZ.getTree().size() << endl;
+    //::treeZ.printValues();
+
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double>elapsed_seconds = end - start;
+    cout << "Size = " << size
+    << " Time taken: " << elapsed_seconds.count() << "s" << endl;
+
+    cout << mmTime << " ms" << endl;
 
     int *mT = new int[size*size]();
     for(int i = 0; i < ::treeZ.getTree().size(); i++) {
@@ -97,19 +110,41 @@ int main(int argc, char *argv[]) {
             int col = node.base.y;
             for(int k = 0; k < B; k++) {
                 for(int l = 0; l < B; l++) {
-                    cout << node.val[k*B + l] << " ";
+                     mT[(row + k)*size + col + l] = (int)node.val[k*B + l];
                 }
-                cout << endl;
             }
         }
     }
-    //printMatrix(mX, size, size);
+    /*mmIKJ(mZ, 0, 0, mX, 0, 0, mY, 0, 0, size, size);
     //cout << endl << endl;
-    //printMatrix(mY, size, size);
-    cout << endl << endl;
-    printMatrix(mZ, size, size);
-    cout << endl << endl;
+    //printMatrix(mZ, size, size);
+    //cout << endl << endl;
     //printMatrix(mT, size, size);
+
+    int resultCount = 0;
+    for(int i = 0; i < size; i++) {
+        for(int j = 0; j < size; j++) {
+            if(mZ[i*size + j] > 0) {
+                resultCount++;
+            }
+        }
+    }
+    Coo *mat3 = (Coo*) malloc(resultCount * sizeof(Coo));
+    int k = 0;
+    for(int i = 0; i < size; i++) {
+        for(int j = 0; j < size; j++) {
+            if(mZ[i*size + j] > 0) {
+                mat3[k].x = i;
+                mat3[k].y = j;
+                mat3[k].val = mZ[i*size + j];
+                k++;
+            }
+        }
+    }
+    Sptree treeTest;
+    treeTest.createCTS(mat3, resultCount, baseX);
+    treeTest.printValues();
+    delete[] mat3;*/
 
     delete[] mat1;
     delete[] mat2;
