@@ -1,0 +1,30 @@
+treeX = 7493
+treeY = 7513
+treeZ = 11011
+Size = 2048 Time taken: 5.53906s
+0 ms
+treeX = 7493
+treeY = 7513
+treeZ = 11343
+Size = 2048 Time taken: 0.408095s
+183.344 ms
+treeX = 29891
+treeY = 29915
+treeZ = 61290
+Size = 4096 Time taken: 43.2933s
+0 ms
+treeX = 29891
+treeY = 29915
+treeZ = 62622
+Size = 4096 Time taken: 3.23688s
+1458.73 ms
+treeX = 71490
+treeY = 71631
+treeZ = 174138
+Size = 8192 Time taken: 103.705s
+0 ms
+treeX = 71490
+treeY = 71631
+treeZ = 179350
+Size = 8192 Time taken: 9.17408s
+3580.22 ms

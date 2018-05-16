@@ -1,0 +1,8 @@
+treeX size = 687
+treeY size = 9015
+terminate called after throwing an instance of 'std::bad_alloc'
+  what():  std::bad_alloc
+/tmp/slurmd/job1406506/slurm_script: line 11: 113994 Aborted                 ./bin/cts_rand_par 0.0025 48 < input/consph.mtx
+treeX size = 4326
+treeY size = 141616
+slurmstepd: error: *** JOB 1406506 ON c478-023 CANCELLED AT 2018-05-12T23:21:12 DUE TO TIME LIMIT ***

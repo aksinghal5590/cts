@@ -1,0 +1,16 @@
+treeX size = 507
+treeY size = 9900
+treeZ size = 9900
+Size = 16384 Base = 128 Time taken by serial execution: 25.0309s
+treeX size = 507
+treeY size = 8244
+treeZ size = 9580
+Size = 16384 Base = 128 Time taken by serial execution: 19.6522s
+treeX size = 507
+treeY size = 9900
+treeZ size = 9900
+Size = 16384 Base = 128 Time taken by parallel execution: 39.2756s
+treeX size = 507
+treeY size = 8244
+treeZ size = 9546
+Size = 16384 Base = 128 Time taken by parallel execution: 31.7552s

@@ -1,0 +1,11 @@
+treeX size = 212
+treeY size = 5022
+treeZ size = 5023
+Size = 65536 Base = 1024 Time taken by parallel execution: 911.433s
+treeX size = 212
+treeY size = 5022
+treeZ size = 5023
+Size = 65536 Base = 1024 Time taken by parallel execution: 877.619s
+treeX size = 212
+treeY size = 5022
+slurmstepd: error: *** JOB 1406504 ON c477-031 CANCELLED AT 2018-05-12T21:58:01 ***
