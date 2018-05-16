@@ -10,6 +10,8 @@
 
 using namespace std;
 
+extern int B;
+extern double mmTime;
 int main(int argc, char *argv[]) {
 
 	int size;

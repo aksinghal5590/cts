@@ -2,12 +2,13 @@
 #define CTS_HPP
 
 #define ORTH 4
-#define B 128
 
 #include <vector>
 #include <iostream>
 
 using namespace std;
+
+extern int B;
 
 class Coo {
 

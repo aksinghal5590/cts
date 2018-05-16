@@ -5,14 +5,13 @@
 #include <vector>
 #include <chrono>
 #include <ctime>
-#include <cilk/cilk.h>
-#include <cilk/cilk_api.h>
 
 #include "cts.hpp"
 
-double mmTime = 0;
 using namespace std;
 
+extern int B;
+extern double mmTime;
 Sptree tempTrees[200];
 int count = 0;
 
@@ -20,8 +19,8 @@ void copyMatrix(const double* srcMat, double* targetMat) {
     if(srcMat == NULL) {
         return;
     }
-    cilk_for(int i = 0; i < B; i++) {
-        cilk_for(int j = 0; j < B; j++) {
+    for(int i = 0; i < B; i++) {
+        for(int j = 0; j < B; j++) {
             targetMat[i*B + j] = srcMat[i*B + j];
         }
     }
@@ -31,8 +30,8 @@ void mergeMatrices(const double* srcMat1, const double* srcMat2, double* targetM
     if(srcMat1 == NULL || srcMat2 == NULL) {
         return;
     }
-    cilk_for(int i = 0; i < B; i++) {
-        cilk_for(int j = 0; j < B; j++) {
+    for(int i = 0; i < B; i++) {
+        for(int j = 0; j < B; j++) {
             targetMat[i*B + j] = srcMat1[i*B + j] + srcMat2[i*B + j];
         }
     }
@@ -42,26 +41,17 @@ bool multiplyMatrices(const double* srcMat1, const double* srcMat2, double* targ
     if(srcMat1 == NULL || srcMat2 == NULL) {
         return false;
     }
-    //auto start = chrono::system_clock::now();
-    cilk_for (int k = 0; k < B; ++k) {
-        cilk_for (int i = 0; i < B; ++i) {
+    bool notEmpty = false;
+    for (int i = 0; i < B; ++i) {
+        for (int k = 0; k < B; ++k) {
             for (int j = 0; j < B; ++j) {
                 targetMat[i*B + j] += srcMat1[i*B + k] * srcMat2[k*B + j];
+                if(targetMat[i*B + j]) {
+                    notEmpty = true;
+                }
             }
         }
     }
-    bool notEmpty = false;
-    for (int i = 0; i < B && !notEmpty; ++i) {
-        for (int j = 0; j < B; ++j) {
-            if(targetMat[i*B + j] != 0) {
-                notEmpty = true;
-                break;
-            }
-        }
-    }
-    //auto end = chrono::system_clock::now();
-    //chrono::duration<double, milli>elapsed_seconds = end - start;
-    //mmTime += elapsed_seconds.count();
     return notEmpty;
 }
 
@@ -461,7 +451,7 @@ void Sptree::multiplySptrees(Sptree& tempA, Sptree& tempB, const vector<Node>& t
 
     //cout << "Non-merged tree:- ";
     //printValues();
-    mergeSptrees(tempA.getTree(), tempB.getTree(), true, trueNodePos);
+    //mergeSptrees(tempA.getTree(), tempB.getTree(), true, trueNodePos);
     //cout << "Merged tree:- ";
     //printValues();
     if(::count >= 2) {
@@ -590,7 +580,7 @@ int Sptree::multiplyTrees(const vector<Node>& tree1, const vector<Node>& tree2,
         } else {
             newVal = new double[B * B]();
             bool notEmpty = false;
-            notEmpty = multiplyMatrices(node1.val, node2.val, newVal);
+            //notEmpty = multiplyMatrices(node1.val, node2.val, newVal);
             if(notEmpty) {
                 newBase.x = node1.base.x;
                 newBase.y = node2.base.y;

@@ -8,6 +8,8 @@
 
 using namespace std;
 
+int B;
+double mmTime;
 int main(int argc, char* argv[]) {
 
     int size = 1024;

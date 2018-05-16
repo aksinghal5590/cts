@@ -11,7 +11,8 @@
 
 using namespace std;
 
-extern double mmTime;
+int B;
+double mmTime;
 Sptree treeZ;
 
 
@@ -39,6 +40,12 @@ int main(int argc, char *argv[]) {
 
     int size;
     int factor;
+
+    istringstream iss2(argv[1]);
+    if (!(iss2 >> B)) {
+        cerr << "Invalid number: " << argv[1] << endl;
+        return -1;
+    }
 
     cin >> size >> size >> factor;
 
@@ -85,25 +92,30 @@ int main(int argc, char *argv[]) {
     treeX.createCTS(mat1, size*factor, baseX);
     treeY.createCTS(mat2, size*factor, baseX);
 
-    cout << "treeX = " << treeX.getTree().size() << endl;
-    cout << "treeY = " << treeY.getTree().size() << endl;
+    cout << "treeX node count = " << treeX.getTree().size() << endl;
+    cout << "treeY node count = " << treeY.getTree().size() << endl;
     //treeX.printValues();
     //treeY.printValues();
 
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double, std::milli>create_ms = end - start;
+    cout << " Time taken in tree creation: " << create_ms.count() << " ms" << endl;
+
     ::treeZ.multiply(treeX.getTree(), treeY.getTree());
 
-    cout << "treeZ = " << ::treeZ.getTree().size() << endl;
+    cout << "treeZ node count = " << ::treeZ.getTree().size() << endl;
     //::treeZ.printValues();
 
-    auto end = std::chrono::system_clock::now();
-    std::chrono::duration<double>elapsed_seconds = end - start;
+    end = std::chrono::system_clock::now();
+    std::chrono::duration<double>total_ms = end - start;
     cout << "Size = " << size
-    << " Time taken: " << elapsed_seconds.count() << "s" << endl;
+    << " Base = " << B
+    << " Total Time taken: " << total_ms.count() << " ms" << endl;
 
-    cout << mmTime << " ms" << endl;
+    cout << "Multiplication time: " << mmTime << " ms" << endl;
 
     int *mT = new int[size*size]();
-    for(int i = 0; i < ::treeZ.getTree().size(); i++) {
+    /*for(int i = 0; i < ::treeZ.getTree().size(); i++) {
         Node node = ::treeZ.getTree()[i];
         if(node.base.len <= B) {
             int row = node.base.x;
@@ -115,7 +127,7 @@ int main(int argc, char *argv[]) {
             }
         }
     }
-    /*mmIKJ(mZ, 0, 0, mX, 0, 0, mY, 0, 0, size, size);
+    mmIKJ(mZ, 0, 0, mX, 0, 0, mY, 0, 0, size, size);
     //cout << endl << endl;
     //printMatrix(mZ, size, size);
     //cout << endl << endl;

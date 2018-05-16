@@ -6,22 +6,26 @@
 #include <sstream>
 #include <type_traits>
 #include <vector>
-#include <cilk/cilk.h>
-#include <cilk/cilk_api.h>
 
 #include "cts.hpp"
 
 using namespace std;
 
+int B;
+double mmTime;
 Sptree treeZ;
 int main(int argc, char *argv[]) {
 
-    __cilkrts_set_param("nworkers", argv[2]);
-
     double fraction;
-    istringstream iss2(argv[1]);
-    if (!(iss2 >> fraction)) {
+    istringstream iss1(argv[1]);
+    if (!(iss1 >> fraction)) {
         cerr << "Invalid number: " << argv[1] << endl;
+        return -1;
+    }
+
+    istringstream iss2(argv[2]);
+    if (!(iss2 >> B)) {
+        cerr << "Invalid number: " << argv[2] << endl;
         return -1;
     }
 
@@ -78,21 +82,24 @@ int main(int argc, char *argv[]) {
     Sptree treeY;
 
     treeX.createCTS(mat1, elemCount, base);
-    //treeY.createCTS(mat1, elemCount, base);
     treeY.createCTS(mat2, n * factor, base);
 
-    cout << "treeX size = " << treeX.getTree().size() << endl;
-    cout << "treeY size = " << treeY.getTree().size() << endl;
+    cout << "treeX node count = " << treeX.getTree().size() << endl;
+    cout << "treeY node count = " << treeY.getTree().size() << endl;
+
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double, std::milli>create_ms = end - start;
+    cout << " Time taken in tree creation: " << create_ms.count() << " ms" << endl;
 
     ::treeZ.multiply(treeX.getTree(), treeY.getTree());
 
-    cout << "treeZ size = " << ::treeZ.getTree().size() << endl;
+    cout << "treeZ node count = " << ::treeZ.getTree().size() << endl;
 
-    auto end = std::chrono::system_clock::now();
-    std::chrono::duration<double>elapsed_seconds = end - start;
+    end = std::chrono::system_clock::now();
+    std::chrono::duration<double, std::milli>total_ms = end - start;
     cout << "Size = " << size
     << " Base = " << B
-    << " Time taken by parallel execution: " << elapsed_seconds.count() << "s" << endl;
+    << " Total time taken: " << total_ms.count() << " ms" << endl;
 
     delete[] col;
     delete[] mat1;

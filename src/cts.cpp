@@ -8,9 +8,10 @@
 
 #include "cts.hpp"
 
-double mmTime = 0;
 using namespace std;
 
+extern int B;
+extern double mmTime;
 Sptree tempTrees[200];
 int count = 0;
 
@@ -40,28 +41,21 @@ bool multiplyMatrices(const double* srcMat1, const double* srcMat2, double* targ
     if(srcMat1 == NULL || srcMat2 == NULL) {
         return false;
     }
+    bool notEmpty = false;
     auto start = chrono::system_clock::now();
     for (int i = 0; i < B; ++i) {
         for (int k = 0; k < B; ++k) {
             for (int j = 0; j < B; ++j) {
                 targetMat[i*B + j] += srcMat1[i*B + k] * srcMat2[k*B + j];
-            }
-        }
-    }
-    bool notEmpty = false;
-    for (int i = 0; i < B; ++i) {
-        if(!notEmpty) {
-            for (int j = 0; j < B; ++j) {
                 if(targetMat[i*B + j] != 0) {
                     notEmpty = true;
-                    break;
                 }
             }
         }
     }
     auto end = chrono::system_clock::now();
-    chrono::duration<double, milli>elapsed_seconds = end - start;
-    mmTime += elapsed_seconds.count();
+    chrono::duration<double, milli>mm_ms = end - start;
+    mmTime += mm_ms.count();
     return notEmpty;
 }
 

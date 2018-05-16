@@ -3,19 +3,22 @@ CFLAGS=-std=c++11 -O3 -Iinclude
 
 .PHONY: all clean
 
-all: clean cts_rand cts_rand_par cts_test cts_test_par  clear_cache data_gen
+all: clean clear_cache cts cts_recur cts_self cts_self_recur cts_test data_gen
 
-cts_rand:
-	$(CC) $(CFLAGS) src/cts.cpp src/ctsMainRandom.cpp -o bin/cts_rand
+cts:
+	$(CC) $(CFLAGS) src/cts.cpp src/ctsMain.cpp -o bin/cts
 
-cts_rand_par:
-	$(CC) $(CFLAGS) -fcilkplus src/ctsParallel.cpp src/ctsMainRandomParallel.cpp -o bin/cts_rand_par
+cts_self:
+	$(CC) $(CFLAGS) src/cts.cpp src/ctsMainSelf.cpp -o bin/cts_self
+
+cts_recur:
+	$(CC) $(CFLAGS) src/ctsRecursion.cpp src/ctsMain.cpp -o bin/cts_recur
+
+cts_self_recur:
+	$(CC) $(CFLAGS) src/ctsRecursion.cpp src/ctsMainSelf.cpp -o bin/cts_self_recur
 
 cts_test:
 	$(CC) $(CFLAGS) src/cts.cpp src/ctsMainTest.cpp -o bin/cts_test
-
-cts_test_par:
-	$(CC) $(CFLAGS) -fcilkplus src/ctsParallel.cpp src/ctsMainTest.cpp -o bin/cts_test_par
 
 data_gen:
 	$(CC) $(CFLAGS) src/dataGenerator.cpp -o bin/data_gen
