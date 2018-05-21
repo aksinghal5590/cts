@@ -6,6 +6,7 @@
 #include <sstream>
 #include <type_traits>
 #include <vector>
+#include <papi.h>
 
 #include "cts.hpp"
 

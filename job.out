@@ -1,0 +1,108 @@
+treeX node count = 507
+treeY node count = 13183
+treeZ node count = 12216
+Time taken by base case merge and multiply = 61.901 ms
+Size = 16384 Base = 128 Total time taken: 699.675 ms
+treeX node count = 507
+treeY node count = 13183
+treeZ node count = 12216
+Size = 16384 Base = 128 L1 misses = 299394636 L2 misses = 4896251 L3 misses = 326577
+treeX node count = 507
+treeY node count = 21845
+treeZ node count = 14705
+Time taken by base case merge and multiply = 260.874 ms
+Size = 16384 Base = 128 Total time taken: 1424.91 ms
+treeX node count = 507
+treeY node count = 21845
+treeZ node count = 14705
+Size = 16384 Base = 128 L1 misses = 549374858 L2 misses = 32109902 L3 misses = 4889585
+treeX node count = 1140
+treeY node count = 87154
+treeZ node count = 83316
+Time taken by base case merge and multiply = 1921.26 ms
+Size = 65536 Base = 256 Total time taken: 18700.1 ms
+treeX node count = 1140
+treeY node count = 87154
+treeZ node count = 83316
+Size = 65536 Base = 256 L1 misses = 10060110602 L2 misses = 791742828 L3 misses = 85674169
+treeX node count = 1140
+treeY node count = 87381
+-12470 -1.73372e-12
+8263.22 78525.6
+-7211.54 1.95399e-13
+treeZ node count = 83317
+Time taken by base case merge and multiply = 8809.03 ms
+Size = 65536 Base = 256 Total time taken: 58296 ms
+treeX node count = 1140
+treeY node count = 87381
+-12470 -1.73372e-12
+8263.22 78525.6
+-7211.54 1.95399e-13
+treeZ node count = 83317
+Size = 65536 Base = 256 L1 misses = 16849070974 L2 misses = 5732220711 L3 misses = 1517516536
+treeX node count = 2096
+treeY node count = 83554
+treeZ node count = 62382
+Time taken by base case merge and multiply = 1993.28 ms
+Size = 65536 Base = 256 Total time taken: 22359.9 ms
+treeX node count = 2096
+treeY node count = 83554
+treeZ node count = 62382
+Size = 65536 Base = 256 L1 misses = 12761080462 L2 misses = 1429141756 L3 misses = 69338638
+treeX node count = 2096
+treeY node count = 87381
+16144.3 -3834.28
+104.328 44.4778
+12.5209 -3.99242
+-28437.5 -15.3613
+treeZ node count = 62561
+Time taken by base case merge and multiply = 6158.08 ms
+Size = 65536 Base = 256 Total time taken: 44749.5 ms
+treeX node count = 2096
+treeY node count = 87381
+16144.3 -3834.28
+104.328 44.4778
+12.5209 -3.99242
+-28437.5 -15.3613
+treeZ node count = 62561
+Size = 65536 Base = 256 L1 misses = 19006332233 L2 misses = 3216076816 L3 misses = 763441528
+treeX node count = 1683
+treeY node count = 74941
+treeZ node count = 47301
+Time taken by base case merge and multiply = 1451.23 ms
+Size = 65536 Base = 256 Total time taken: 14911.9 ms
+treeX node count = 1683
+treeY node count = 74941
+treeZ node count = 47301
+Size = 65536 Base = 256 L1 misses = 7923802523 L2 misses = 718348177 L3 misses = 91176591
+treeX node count = 1683
+treeY node count = 87381
+-57.3167 2.24506
+-9.17367 78.858
+treeZ node count = 48905
+Time taken by base case merge and multiply = 4075.41 ms
+Size = 65536 Base = 256 Total time taken: 31040.2 ms
+treeX node count = 1683
+treeY node count = 87381
+-57.3167 2.24506
+-9.17367 78.858
+treeZ node count = 48905
+Size = 65536 Base = 256 L1 misses = 13606502989 L2 misses = 1975253844 L3 misses = 521252326
+treeX node count = 276
+treeY node count = 5461
+treeZ node count = 3537
+Time taken by base case merge and multiply = 1180.68 ms
+Size = 131072 Base = 2048 Total time taken: 188167 ms
+treeX node count = 276
+treeY node count = 5461
+treeZ node count = 3537
+Size = 131072 Base = 2048 L1 misses = 28115643691 L2 misses = 28024056252 L3 misses = 11093041466
+treeX node count = 276
+treeY node count = 5461
+treeZ node count = 3537
+Time taken by base case merge and multiply = 5038.72 ms
+Size = 131072 Base = 2048 Total time taken: 181289 ms
+treeX node count = 276
+treeY node count = 5461
+treeZ node count = 3537
+Size = 131072 Base = 2048 L1 misses = 34159070612 L2 misses = 35202594257 L3 misses = 19186369166
