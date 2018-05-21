@@ -37,6 +37,26 @@ class Mtx {
         }
 };
 
+class Csr {
+
+    public:
+
+        vector<double> vals;
+        vector<int> idx;
+        vector<int> iCount;
+
+        Csr() {}
+
+        Csr(int valSize, int idxSize, int iCountSize) : vals(valSize, 0), idx(idxSize, 0), iCount(iCountSize, 0) {
+        }
+
+        void operator = (const Csr& csr) {
+            this->vals = csr.vals;
+            this->idx = csr.idx;
+            this->iCount = csr.iCount;
+        }
+};
+
 class Base {
 
     public:
@@ -114,14 +134,13 @@ class Node {
     public:
 
         Base base;
-        double* val;
+        Csr csr;
         int* cPtr;
         int parent;
         int offset;
 
         Node() {
             Base base;
-            val = NULL;
             cPtr = NULL;
             parent = -1;
             offset = 0;
@@ -131,50 +150,49 @@ class Node {
             this->base = node.base;
             this->parent = node.parent;
             this->offset = node.offset;
-            if(node.val != NULL) {
-                this->val = new double[B * B];
-                for(int i = 0; i < B * B; i++) {
-                    this->val[i] = node.val[i];
-                }
-            } else {
-                this->val = NULL;
-            }
+            this->csr = node.csr;
             this->cPtr = new int[ORTH];
             for(int i = 0; i < ORTH; i++) {
                 this->cPtr[i] = node.cPtr[i];
             }
         }
 
-        Node(Base base, double* val, int* cPtr, int parent) {
+        Node(Base base, int* cPtr, int parent) {
             this->base = base;
             this->parent = parent;
             this->offset = 0;
-            if(val != NULL) {
-                this->val = new double[B * B];
-                for(int i = 0; i < B * B; i++) {
-                    this->val[i] = val[i];
-                }
-            } else {
-                this->val = NULL;
-            }
             this->cPtr = new int[ORTH];
             for(int i = 0; i < ORTH; i++) {
                 this->cPtr[i] = cPtr[i];
             }
         }
 
-        Node(Base base, double* val, int* cPtr, int parent, int offset) {
+        Node(Base base, Csr csr, int* cPtr, int parent) {
+            this->base = base;
+            this->parent = parent;
+            this->offset = 0;
+            this->csr = csr;
+            this->cPtr = new int[ORTH];
+            for(int i = 0; i < ORTH; i++) {
+                this->cPtr[i] = cPtr[i];
+            }
+        }
+
+        Node(Base base, int* cPtr, int parent, int offset) {
             this->base = base;
             this->parent = parent;
             this->offset = offset;
-            if(val != NULL) {
-                this->val = new double[B * B];
-                for(int i = 0; i < B * B; i++) {
-                    this->val[i] = val[i];
-                }
-            } else {
-                this->val = NULL;
+            this->cPtr = new int[ORTH];
+            for(int i = 0; i < ORTH; i++) {
+                this->cPtr[i] = cPtr[i];
             }
+        }
+
+        Node(Base base, Csr csr, int* cPtr, int parent, int offset) {
+            this->base = base;
+            this->parent = parent;
+            this->offset = offset;
+            this->csr = csr;
             this->cPtr = new int[ORTH];
             for(int i = 0; i < ORTH; i++) {
                 this->cPtr[i] = cPtr[i];
@@ -192,14 +210,7 @@ class Node {
             this->base = node.base;
             this->parent = node.parent;
             this->offset = node.offset;
-            if(node.val != NULL) {
-                this->val = new double[B * B];
-                for(int i = 0; i < B * B; i++) {
-                    this->val[i] = node.val[i];
-                }
-            } else {
-                this->val = NULL;
-            }
+            this->csr = node.csr;
             this->cPtr = new int[ORTH];
             for(int i = 0; i < ORTH; i++) {
                 this->cPtr[i] = node.cPtr[i];
@@ -217,22 +228,12 @@ class Node {
             }
             cout << ")(" << parent << ")";
             cout << "(" << offset << ")";
-            /*if(val != NULL) {
-                cout << "(";
-                for(int i = 0; i < B; i++) {
-                    for(int j = 0; j < B; j++) {
-                        cout << val[i*B + j] << ",";
-                    }
-                }
-                cout << ")";
-            }*/
+            if(base.len <= B)
+                cout << "(" << csr.iCount[csr.iCount.size() - 1] << ")";
             cout << endl;
         }
 
         ~Node() {
-            if(val != NULL) {
-                delete[] val;
-            }
             if(cPtr != NULL) {
                 delete[] cPtr;
             }

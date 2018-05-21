@@ -1,8 +1,11 @@
-#include <cstdlib>
+#include <algorithm>
+#include <chrono>
 #include <ctime>
+#include <cstdlib>
 #include <iostream>
-#include <papi.h>
 #include <sstream>
+#include <type_traits>
+#include <vector>
 
 #include "cts.hpp"
 
@@ -10,101 +13,98 @@ using namespace std;
 
 int B;
 double mmTime;
-int main(int argc, char* argv[]) {
+Sptree treeZ;
+int main(int argc, char *argv[]) {
 
-    int size = 1024;
-    int factor = 100;
+    double fraction;
     istringstream iss1(argv[1]);
-    if (!(iss1 >> size)) {
+    if (!(iss1 >> fraction)) {
         cerr << "Invalid number: " << argv[1] << endl;
-    }
-    istringstream iss2(argv[2]);
-    if (!(iss2 >> factor)) {
-        cerr << "Invalid number: " << argv[2] << endl;
+        return -1;
     }
 
-    int *AX = new int[size*factor]();
-    int *IAX = new int[size + 1]();
-    int *JAX = new int[size*factor]();
-    int *AY = new int[size*factor]();
-    int *IAY = new int[size + 1]();
-    int *JAY = new int[size*factor]();
+    int n, m, elemCount;
+    cin >> n >> m >> elemCount;
+    n = (n >= m) ? n : m;
+    int factor = (int)((double)n * fraction);
+        int size = 0;
+    int ceil2 = 2;
+    while(1) {
+        if(n <= ceil2) {
+            size = ceil2;
+            break;
+        }
+        ceil2 *= 2;
+    }
 
-    int k = 0;
-    int a = 1;
-    for(int i = 0; i < size; i++) {
-        for(int j = 0; j < factor; j++) {
-            int col = rand() % size;
-            AX[k] = a++;
-            JAX[k] = col;
-            k++;
-        }
-        IAX[i+1] = IAX[i] + factor;
-        a = 1;
+    int x, y;
+    double val;
+    vector<Mtx> inList;
+    for(int i = 0; i < elemCount; i++) {
+        cin >> x >> y >> val;
+        inList.emplace_back(Mtx(x, y, val));
     }
-    srand(time(0));
-    k = 0;
-    a = 1;
-    for(int i = 0; i < size; i++) {
-        for(int j = 0; j < factor; j++) {
-            int col = rand() % size;
-            AY[k] = a++;
-            JAY[k] = col;
-            k++;
-        }
-        IAY[i+1] = IAY[i] + factor;
-        a = 1;
+    sort(inList.begin(), inList.end());
+    Coo *mat1 = new Coo[elemCount];
+    for(int i = 0; i < inList.size(); i++) {
+        mat1[i].x = inList[i].x - 1;
+        mat1[i].y = inList[i].y - 1;
+        mat1[i].val = inList[i].val;
     }
+
+    vector<Mtx> list;
+    for(int i = 0; i < n * factor; i++) {
+        list.emplace_back(Mtx(rand() % size, rand() % size, (rand() % 200) - 100));
+    }
+    sort(list.begin(), list.end());
+    for(int i = 0; i < list.size() - 1; i++) {
+        if((list[i].x == list[i+1].x) && (list[i].y == list[i+1].y)) {
+            list.erase(list.begin() + i + 1);
+        }
+    }
+    Coo *mat2 = new Coo[list.size()];
+    for(int i = 0; i < list.size(); i++) {
+        mat2[i].x = list[i].x;
+        mat2[i].y = list[i].y;
+        mat2[i].val = list[i].val;
+    }
+    double density = (double)elemCount/((double)n*n);
+    if(density < 0.0005) {
+        B = size/64;
+    } else if(density > 0.0005 && density < 0.005) {
+        B = size/256;
+    } else {
+        B = size/512;
+    }
+    B = (B <= 128 ? 128 : B);
+    Base base(0, 0, size);
+
+    Sptree treeX;
+    Sptree treeY;
+
+    treeX.createCTS(mat1, elemCount, base);
+    treeY.createCTS(mat2, list.size(), base);
+
+    cout << "treeX node count = " << treeX.getTree().size() << endl;
+    cout << "treeY node count = " << treeY.getTree().size() << endl;
 
     long_long counters[3] = {0};
     int PAPI_events[] = {PAPI_L1_TCM, PAPI_L2_TCM, PAPI_L3_TCM};
     PAPI_library_init(PAPI_VER_CURRENT);
     PAPI_start_counters(PAPI_events, 3);
 
-    Coo *mat1 = (Coo*) malloc(size * factor * sizeof(Coo));
-    Coo *mat2 = (Coo*) malloc(size * factor * sizeof(Coo));
-    k = 0;
-    for(int i = 0; i < size; i++) {
-        for(int j = 0; j < IAX[i+1] - IAX[i]; j++) {
-            mat1[k].x = i;
-            mat1[k].y = JAX[k];
-            mat1[k].val = AX[k];
-            k++;
-        }
-    }
-    k = 0;
-    srand(time(0));
-    for(int i = 0; i < size; i++) {
-        for(int j = 0; j < IAY[i+1] - IAY[i]; j++) {
-            mat2[k].x = i;
-            mat2[k].y = JAY[k];
-            mat2[k].val = AY[k];
-            k++;
-        }
-    }
-
-    Sptree treeX;
-    Sptree treeY;
-    Sptree treeZ;
-    Base base(0, 0, size);
-    treeX.createCTS(mat1, size*factor, base);
-    treeX.createCTS(mat2, size*factor, base);
-
-    treeZ.multiply(treeX.getTree(), treeY.getTree());
+    ::treeZ.multiply(treeX.getTree(), treeY.getTree());
 
     PAPI_read_counters(counters, 3);
 
+    cout << "treeZ node count = " << ::treeZ.getTree().size() << endl;
+
     cout << "Size = " << size
+    << " Base = " << B
     << " L1 misses = " << counters[0]
     << " L2 misses = " << counters[1]
     << " L3 misses = " << counters[2] << endl;
 
-    delete[] AX;
-    delete[] IAX;
-    delete[] JAX;
-    delete[] AY;
-    delete[] IAY;
-    delete[] JAY;
     delete[] mat1;
     delete[] mat2;
     return 0;

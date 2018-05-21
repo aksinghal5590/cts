@@ -15,48 +15,116 @@ extern double mmTime;
 Sptree tempTrees[200];
 int count = 0;
 
-void copyMatrix(const double* srcMat, double* targetMat) {
-    if(srcMat == NULL) {
-        return;
-    }
-    for(int i = 0; i < B; i++) {
-        for(int j = 0; j < B; j++) {
-            targetMat[i*B + j] = srcMat[i*B + j];
-        }
-    }
-}
-
-void mergeMatrices(const double* srcMat1, const double* srcMat2, double* targetMat) {
-    if(srcMat1 == NULL || srcMat2 == NULL) {
-        return;
-    }
-    for(int i = 0; i < B; i++) {
-        for(int j = 0; j < B; j++) {
-            targetMat[i*B + j] = srcMat1[i*B + j] + srcMat2[i*B + j];
-        }
-    }
-}
-
-bool multiplyMatrices(const double* srcMat1, const double* srcMat2, double* targetMat) {
-    if(srcMat1 == NULL || srcMat2 == NULL) {
-        return false;
-    }
-    bool notEmpty = false;
+void mergeMatrices(const Csr& srcCsr1, const Csr& srcCsr2, Csr& targetCsr) {
     auto start = chrono::system_clock::now();
-    for (int i = 0; i < B; ++i) {
-        for (int k = 0; k < B; ++k) {
-            for (int j = 0; j < B; ++j) {
-                targetMat[i*B + j] += srcMat1[i*B + k] * srcMat2[k*B + j];
-                if(targetMat[i*B + j] != 0) {
-                    notEmpty = true;
-                }
+
+    for(int i = 0; i < B; i++) {
+        int iCount1 = srcCsr1.iCount[i+1];
+        int iCount2 = srcCsr2.iCount[i+1];
+        int j = srcCsr1.iCount[i];
+        int k = srcCsr2.iCount[i];
+        int t = targetCsr.iCount[i];
+        while(j < iCount1 && k < iCount2) {
+            if(i == 33 && (srcCsr1.idx[j] == 12 && srcCsr2.idx[k] == 12)) {
+                cout << srcCsr1.vals[j] << " " << srcCsr2.vals[k] << endl;
             }
+            if(srcCsr1.idx[j] < srcCsr2.idx[k]) {
+                targetCsr.idx[t] = srcCsr1.idx[j];
+                targetCsr.vals[t] = srcCsr1.vals[j];
+                j++;
+            } else if(srcCsr1.idx[j] > srcCsr2.idx[k]) {
+                targetCsr.idx[t] = srcCsr2.idx[k];
+                targetCsr.vals[t] = srcCsr2.vals[k];
+                k++;
+            } else {
+                targetCsr.idx[t] = srcCsr1.idx[j];
+                targetCsr.vals[t] = srcCsr1.vals[j] + srcCsr2.vals[k];
+                j++;
+                k++;
+            }
+            t++;
         }
+        while(j < iCount1) {
+            targetCsr.idx[t] = srcCsr1.idx[j];
+            targetCsr.vals[t] = srcCsr1.vals[j];
+            j++;
+            t++;
+        }
+        while(k < iCount2) {
+            targetCsr.idx[t] = srcCsr2.idx[k];
+            targetCsr.vals[t] = srcCsr2.vals[k];
+            k++;
+            t++;
+        }
+        targetCsr.iCount[i+1] = t;
     }
+
+    targetCsr.vals.resize(targetCsr.iCount[B]);
+    targetCsr.idx.resize(targetCsr.iCount[B]);
+
     auto end = chrono::system_clock::now();
     chrono::duration<double, milli>mm_ms = end - start;
     mmTime += mm_ms.count();
-    return notEmpty;
+}
+
+bool multiplyMatrices(const Csr& srcCsr1, const Csr& srcCsr2, Csr& targetCsr) {
+
+    auto start = chrono::system_clock::now();
+    //assemble
+    bool* workspace = new bool[B]();
+    int* wlist = new int[B]();
+    int w_size = 0;
+
+    targetCsr.iCount[0] = 0;
+    for (int i = 0; i < B; i++) {
+        for (int B2_pos = srcCsr1.iCount[i]; B2_pos < srcCsr1.iCount[i+1]; B2_pos++) {
+            int k = srcCsr1.idx[B2_pos];
+            for (int C2_pos = srcCsr2.iCount[k]; C2_pos < srcCsr2.iCount[k+1]; C2_pos++) {
+                int j = srcCsr2.idx[C2_pos];
+                if (!workspace[j]) {
+                    wlist[w_size++] = j;
+                    workspace[j] = true;
+                }
+            }
+        }
+        targetCsr.iCount[i+1] = targetCsr.iCount[i] + w_size;
+        for (int w_pos = 0; w_pos < w_size; w_pos++) {
+            int j = wlist[w_pos];
+            targetCsr.idx[targetCsr.iCount[i] + w_pos] = j;
+            workspace[j] = false;
+        }
+        w_size = 0;
+    }
+
+    // compute
+    double* tempVals = new double[B]();
+
+    for (int i = 0; i < B; i++) {
+        for (int B2_pos = srcCsr1.iCount[i]; B2_pos < srcCsr1.iCount[i+1]; B2_pos++) {
+            int k = srcCsr1.idx[B2_pos];
+            for (int C2_pos = srcCsr2.iCount[k]; C2_pos < srcCsr2.iCount[k+1]; C2_pos++) {
+                int j = srcCsr2.idx[C2_pos];
+                tempVals[j] += srcCsr1.vals[B2_pos] * srcCsr2.vals[C2_pos];
+            }
+        }
+        for (int A2_pos = targetCsr.iCount[i]; A2_pos < targetCsr.iCount[i+1]; A2_pos++) {
+            int j = targetCsr.idx[A2_pos];
+            targetCsr.vals[A2_pos] = tempVals[j];
+            tempVals[j] = 0;
+        }
+    }
+
+    targetCsr.vals.resize(targetCsr.iCount[B]);
+    targetCsr.idx.resize(targetCsr.iCount[B]);
+
+    auto end = chrono::system_clock::now();
+    chrono::duration<double, milli>mm_ms = end - start;
+    mmTime += mm_ms.count();
+
+    delete[] workspace;
+    delete[] wlist;
+    delete[] tempVals;
+    return (targetCsr.iCount[targetCsr.iCount.size() - 1] > 0 ? true : false);
 }
 
 void Sptree::createCTS(Coo* M, int lenM, Base base) {
@@ -69,17 +137,21 @@ void Sptree::createCTS(Coo* M, int lenM, Base base) {
         cPtr[i] = -1;
     }
     if (base.len <= B) {
-        double* baseVal = new double[B * B]();
+        Csr csr(lenM, lenM, B + 1);
         for(int i = 0; i < lenM; i++) {
-            baseVal[B*((M[i].x) % B) + (M[i].y) % B] = M[i].val;
+            csr.vals[i] = M[i].val;
+            csr.idx[i] = M[i].y;
+            csr.iCount[M[i].x + 1]++;
         }
-        Node node(base, baseVal, cPtr, -1);
+        for(int i = 0; i < csr.iCount.size() - 1; i++) {
+            csr.iCount[i+1] += csr.iCount[i];
+        }
+        Node node(base, csr, cPtr, -1);
         tree.emplace_back(node);
-        delete[] baseVal;
         return;
     }
 
-    Node root(base, NULL, cPtr, -1);
+    Node root(base, cPtr, -1);
     tree.emplace_back(root);
 
     for (int i = 0; i < ORTH; i++) {
@@ -130,15 +202,18 @@ int Sptree::createSPTree(int idx, bool has_sibling, Coo* M, int lenM, Base base,
     for(int i = 0; i < ORTH; i++) {
         cPtr[i] = -1;
     }
-
     if (base.len <= B) {
-        double* baseVal = new double[B * B]();
+        Csr csr(lenM, lenM, B + 1);
         for(int i = 0; i < lenM; i++) {
-            baseVal[B*((M[i].x) % B) + (M[i].y) % B] = M[i].val;
+            csr.vals[i] = M[i].val;
+            csr.idx[i] = (M[i].y % B);
+            csr.iCount[(M[i].x % B) + 1]++;
         }
-        Node node(base, baseVal, cPtr, baseParent);
+        for(int i = 0; i < csr.iCount.size() - 1; i++) {
+            csr.iCount[i+1] += csr.iCount[i];
+        }
+        Node node(base, csr, cPtr, baseParent);
         tree.emplace_back(node);
-        delete[] baseVal;
         return tree.size() - 1;
     }
 
@@ -170,7 +245,7 @@ int Sptree::createSPTree(int idx, bool has_sibling, Coo* M, int lenM, Base base,
     if (!has_sibling && !has_sibling_child) {
         index = createSPTree(iOrthant, false, Ms[iOrthant], lenMs[iOrthant], base.getBase(iOrthant), baseParent);
     } else {
-        Node node(base, NULL, cPtr, baseParent);
+        Node node(base, cPtr, baseParent);
         tree.emplace_back(node);
         index = tree.size() - 1;
         for (int i = 0; i < ORTH; i++) {
@@ -206,7 +281,6 @@ void Sptree::mergeSptrees(const vector<Node>& tree1, const vector<Node>& tree2, 
     bool isOffset = false;
     bool isEmpty = true;
     Base newBase(0, 0, 0);
-    double* newVal = NULL;
     int* cPtr = new int[ORTH];
     for(int i = 0; i < ORTH; i++) {
         cPtr[i] = -1;
@@ -221,7 +295,7 @@ void Sptree::mergeSptrees(const vector<Node>& tree1, const vector<Node>& tree2, 
 
     int initTreeSize = tree.size();
     if(!(node1 == emptyNode) && ((node2 == emptyNode) || (node1.base.len >= node2.base.len && node2.base.len > B))) {
-        Node root(node1.base, NULL, cPtr, node1.parent, trueNodePos);
+        Node root(node1.base, cPtr, node1.parent, trueNodePos);
         tree.emplace_back(root);
         if(isMultiply && (initTreeSize > 0)) {
             int iOrth = tree[0].base.getIOrthant(root.base.x, root.base.y);
@@ -230,7 +304,7 @@ void Sptree::mergeSptrees(const vector<Node>& tree1, const vector<Node>& tree2, 
         }
         isOffset = true;
     } else if(!(node2 == emptyNode) && ((node1 == emptyNode) || (node2.base.len >= node1.base.len && node1.base.len > B))) {
-        Node root(node2.base, NULL, cPtr, node2.parent, trueNodePos);
+        Node root(node2.base, cPtr, node2.parent, trueNodePos);
         tree.emplace_back(root);
         if(isMultiply && (initTreeSize > 0)) {
             int iOrth = tree[0].base.getIOrthant(root.base.x, root.base.y);
@@ -291,13 +365,12 @@ int Sptree::mergeTrees(const vector<Node>& tree1, const vector<Node>& tree2, con
     const int offset = tree[0].offset;
     const int trueNodePos = parent - offset;
     Base newBase(0, 0, 0);
-    double* newVal = NULL;
     int* cPtr = new int[ORTH];
     for(int i = 0; i < ORTH; i++) {
         cPtr[i] = -1;
     }
 
-    Node node1(newBase, newVal, cPtr, -1), node2(newBase, newVal, cPtr, -1), emptyNode(newBase, newVal, cPtr, -1);
+    Node node1(newBase, cPtr, -1), node2(newBase, cPtr, -1), emptyNode(newBase, cPtr, -1);
     if(pos1 > -1) {
         node1 = tree1[pos1];
     }
@@ -367,18 +440,16 @@ int Sptree::mergeTrees(const vector<Node>& tree1, const vector<Node>& tree2, con
     }
     if(pos1 > -1 || pos2 > -1) {
         if(count == ORTH) {
+            Csr newCsr(B*B, B*B, B+1);
             if(node2 == emptyNode) {
                 newBase = node1.base;
-                newVal = new double[B * B]();
-                copyMatrix(node1.val, newVal);
+                newCsr = node1.csr;
             } else if(node1 == emptyNode) {
                 newBase = node2.base;
-                newVal = new double[B * B]();
-                copyMatrix(node2.val, newVal);
+                newCsr = node2.csr;
             } else if(!(node2 == emptyNode) && !(node1 == emptyNode)) {
                 newBase = node1.base;
-                newVal = new double[B * B]();
-                mergeMatrices(node1.val, node2.val, newVal);
+                mergeMatrices(node1.csr, node2.csr, newCsr);
             } else {
                 cerr << "Something terrible happened!!\r";
                 exit(1);
@@ -392,7 +463,7 @@ int Sptree::mergeTrees(const vector<Node>& tree1, const vector<Node>& tree2, con
                 node2.printValues();
             }
             if(parent + orth + 1 >= tree.size()) {
-                Node newNode(newBase, newVal, cPtr, parent, offset);
+                Node newNode(newBase, newCsr, cPtr, parent, offset);
                 tree.emplace_back(newNode);
                 index = tree.size() - 1 + offset;
             } else {
@@ -406,9 +477,6 @@ int Sptree::mergeTrees(const vector<Node>& tree1, const vector<Node>& tree2, con
                 tree[index - offset].cPtr[i] = cPtr[i];
             }
         }
-    }
-    if(newVal != NULL) {
-        delete[] newVal;
     }
     delete[] cPtr;
     return index;
@@ -424,7 +492,7 @@ int Sptree::appendNode(const Base& base, const int trueNodePos, const int parent
     if(tree[trueNodePos].cPtr[orth] != -1) {
         index = tree[trueNodePos].cPtr[orth];
     } else {
-        Node newNode(base, NULL, cPtr, parent, tree[0].offset);
+        Node newNode(base, cPtr, parent, tree[0].offset);
         tree.emplace_back(newNode);
         index = tree.size() - 1 + tree[0].offset;
     }
@@ -524,7 +592,7 @@ void Sptree::multiplyParts(const vector<Node>& tree1, const vector<Node>& tree2,
         newBase.x = node1.base.x;
         newBase.y = node2.base.y;
         newBase.len = node1.base.len;
-        Node root(newBase, NULL, cPtr, parentPos, trueNodePos);
+        Node root(newBase, cPtr, parentPos, trueNodePos);
         tree.emplace_back(root);
         parent = tree.size() - 1 + trueNodePos;
         //cout << "Node 1 = "; node1.printValues();
@@ -563,7 +631,6 @@ void Sptree::multiplyParts(const vector<Node>& tree1, const vector<Node>& tree2,
 int Sptree::multiplyTrees(const vector<Node>& tree1, const vector<Node>& tree2,
     const int pos1, const int pos2, const int parent, const int orthant, const int trueNodePos) {
     Base newBase(0, 0, 0);
-    double* newVal = NULL;
     int index = -1;
     int* cPtr = new int[ORTH];
     for(int i = 0; i < ORTH; i++) {
@@ -582,14 +649,14 @@ int Sptree::multiplyTrees(const vector<Node>& tree1, const vector<Node>& tree2,
             Sptree& tempB = ::tempTrees[::count++];
             multiplySptrees(tempA, tempB, tree1, tree2, pos1, pos2, parent, tree.size() + parent);
         } else {
-            newVal = new double[B * B]();
             bool notEmpty = false;
-            notEmpty = multiplyMatrices(node1.val, node2.val, newVal);
+            Csr newCsr(B*B, B*B, B+1);
+            notEmpty = multiplyMatrices(node1.csr, node2.csr, newCsr);
             if(notEmpty) {
                 newBase.x = node1.base.x;
                 newBase.y = node2.base.y;
                 newBase.len = B;
-                Node newNode(newBase, newVal, cPtr, parent, trueNodePos);
+                Node newNode(newBase, newCsr, cPtr, parent, trueNodePos);
                 tree.emplace_back(newNode);
                 index = tree.size() - 1 + trueNodePos;
                 //cout << "Node 1 = "; node1.printValues();
@@ -600,8 +667,5 @@ int Sptree::multiplyTrees(const vector<Node>& tree1, const vector<Node>& tree2,
     }
     delete[] cPtr;
     delete[] cPtrLeaf;
-    if(newVal != NULL) {
-        delete[] newVal;
-    }
     return index;
 }

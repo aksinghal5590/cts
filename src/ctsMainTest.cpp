@@ -39,44 +39,40 @@ void printMatrix(int *m, int row, int col) {
 int main(int argc, char *argv[]) {
 
     int size;
-    int factor;
+    int elemCount1, elemCount2;
+    int x, y;
+    double val;
+    vector<Mtx> list1;
+    vector<Mtx> list2;
 
-    istringstream iss2(argv[1]);
-    if (!(iss2 >> B)) {
-        cerr << "Invalid number: " << argv[1] << endl;
-        return -1;
-    }
-
-    cin >> size >> size >> factor;
+    cin >> size >> size >> elemCount1;
 
     int *mX = new int[size*size]();
     int *mY = new int[size*size]();
     int *mZ = new int[size*size]();
-    Coo *mat1 = (Coo*) malloc(size * factor * sizeof(Coo));
-    Coo *mat2 = (Coo*) malloc(size * factor * sizeof(Coo));
-    vector<Mtx> list1;
-    vector<Mtx> list2;
-
-    int x, y;
-    double val;
-    for(int i = 0; i < size*factor; i++) {
+    Coo *mat1 = (Coo*) malloc(elemCount1 * sizeof(Coo));
+    for(int i = 0; i < elemCount1; i++) {
         cin >> x >> y >> val;
         list1.emplace_back(Mtx(x, y ,val));
     }
-    for(int i = 0; i < size*factor; i++) {
+
+    cin >> size >> size >> elemCount2;
+    Coo *mat2 = (Coo*) malloc(elemCount2 * sizeof(Coo));
+    for(int i = 0; i < elemCount2; i++) {
         cin >> x >> y >> val;
         list2.emplace_back(Mtx(x, y ,val));
     }
+
     sort(list1.begin(), list1.end());
     sort(list2.begin(), list2.end());
 
-    for(int i = 0; i < size * factor; i++) {
+    for(int i = 0; i < list1.size(); i++) {
         mat1[i].x = list1[i].x;
         mat1[i].y = list1[i].y;
         mat1[i].val = list1[i].val;
         mX[mat1[i].x * size + mat1[i].y] = mat1[i].val;
     }
-    for(int i = 0; i < size * factor; i++) {
+    for(int i = 0; i < list2.size(); i++) {
         mat2[i].x = list2[i].x;
         mat2[i].y = list2[i].y;
         mat2[i].val = list2[i].val;
@@ -84,54 +80,47 @@ int main(int argc, char *argv[]) {
     }
     Sptree treeX;
     Sptree treeY;
-
+    B = size/32;
     Base baseX(0, 0, size);
 
-    auto start = std::chrono::system_clock::now();
-
-    treeX.createCTS(mat1, size*factor, baseX);
-    treeY.createCTS(mat2, size*factor, baseX);
+    treeX.createCTS(mat1, list1.size(), baseX);
+    treeY.createCTS(mat2, list2.size(), baseX);
 
     cout << "treeX node count = " << treeX.getTree().size() << endl;
     cout << "treeY node count = " << treeY.getTree().size() << endl;
-    //treeX.printValues();
-    //treeY.printValues();
 
-    auto end = std::chrono::system_clock::now();
-    std::chrono::duration<double, std::milli>create_ms = end - start;
-    cout << " Time taken in tree creation: " << create_ms.count() << " ms" << endl;
+    auto start = std::chrono::system_clock::now();
 
     ::treeZ.multiply(treeX.getTree(), treeY.getTree());
 
-    cout << "treeZ node count = " << ::treeZ.getTree().size() << endl;
-    //::treeZ.printValues();
+    auto end = std::chrono::system_clock::now();
+    std::chrono::duration<double, std::milli>total_ms = end - start;
 
-    end = std::chrono::system_clock::now();
-    std::chrono::duration<double>total_ms = end - start;
+    cout << "treeZ node count = " << ::treeZ.getTree().size() << endl;
+
+    cout << "Time taken by base case merge and multiply = " << mmTime << " ms" << endl;
     cout << "Size = " << size
     << " Base = " << B
     << " Total Time taken: " << total_ms.count() << " ms" << endl;
 
-    cout << "Multiplication time: " << mmTime << " ms" << endl;
-
-    int *mT = new int[size*size]();
-    /*for(int i = 0; i < ::treeZ.getTree().size(); i++) {
+    /*int *mT = new int[size*size]();
+    for(int i = 0; i < ::treeZ.getTree().size(); i++) {
         Node node = ::treeZ.getTree()[i];
         if(node.base.len <= B) {
             int row = node.base.x;
             int col = node.base.y;
             for(int k = 0; k < B; k++) {
-                for(int l = 0; l < B; l++) {
-                     mT[(row + k)*size + col + l] = (int)node.val[k*B + l];
+                for(int l = node.csr.iCount[k]; l < node.csr.iCount[k+1]; l++) {
+                    mT[(row + k)*size + col + node.csr.idx[l]] = (int)node.csr.vals[l];
                 }
             }
         }
     }
     mmIKJ(mZ, 0, 0, mX, 0, 0, mY, 0, 0, size, size);
-    //cout << endl << endl;
-    //printMatrix(mZ, size, size);
-    //cout << endl << endl;
-    //printMatrix(mT, size, size);
+    cout << endl << endl;
+    printMatrix(mZ, size, size);
+    cout << endl << endl;
+    printMatrix(mT, size, size);
 
     int resultCount = 0;
     for(int i = 0; i < size; i++) {
@@ -163,6 +152,6 @@ int main(int argc, char *argv[]) {
     delete[] mX;
     delete[] mY;
     delete[] mZ;
-    delete[] mT;
+    //delete[] mT;
     return 0;
 }

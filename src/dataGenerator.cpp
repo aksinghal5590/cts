@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <chrono>
 #include <ctime>
 #include <cstdlib>
@@ -28,17 +29,35 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    cout << size << " " << size << " " << factor << endl;
-    for(int i = 0; i < size; i++) {
-        for(int j = 0; j < factor; j++) {
-        	cout << i << " " << (rand() % size) << " " << 1 << endl;
-        }
+    vector<Mtx> list1;
+    vector<Mtx> list2;
+
+    for(int i = 0; i < size * factor; i++) {
+        list1.emplace_back(Mtx(rand() % size, rand() % size, (rand() % 200) - 100));
     }
 
-    for(int i = 0; i < size; i++) {
-        for(int j = 0; j < factor; j++) {
-        	cout << i << " " << (rand() % size) << " " << 1 << endl;
+    for(int i = 0; i < size * factor; i++) {
+        list2.emplace_back(Mtx(rand() % size, rand() % size, (rand() % 200) - 100));
+    }
+    sort(list1.begin(), list1.end());
+    sort(list2.begin(), list2.end());
+    for(int i = 0; i < list1.size() - 1; i++) {
+        if((list1[i].x == list1[i+1].x) && (list1[i].y == list1[i+1].y)) {
+            list1.erase(list1.begin() + i + 1);
         }
+    }
+    for(int i = 0; i < list2.size() - 1; i++) {
+        if((list2[i].x == list2[i+1].x) && (list2[i].y == list2[i+1].y)) {
+            list2.erase(list2.begin() + i + 1);
+        }
+    }
+    cout << size << " " << size << " " << list1.size() << endl;
+    for(int i = 0; i < list1.size(); i++) {
+        cout << list1[i].x << " " << list1[i].y << " " << list1[i].val << endl;
+    }
+    cout << size << " " << size << " " << list2.size() << endl;
+    for(int i = 0; i < list2.size(); i++) {
+        cout << list2[i].x << " " << list2[i].y << " " << list2[i].val << endl;
     }
 
     return 0;
