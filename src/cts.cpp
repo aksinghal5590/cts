@@ -25,9 +25,6 @@ void mergeMatrices(const Csr& srcCsr1, const Csr& srcCsr2, Csr& targetCsr) {
         int k = srcCsr2.iCount[i];
         int t = targetCsr.iCount[i];
         while(j < iCount1 && k < iCount2) {
-            if(i == 33 && (srcCsr1.idx[j] == 12 && srcCsr2.idx[k] == 12)) {
-                cout << srcCsr1.vals[j] << " " << srcCsr2.vals[k] << endl;
-            }
             if(srcCsr1.idx[j] < srcCsr2.idx[k]) {
                 targetCsr.idx[t] = srcCsr1.idx[j];
                 targetCsr.vals[t] = srcCsr1.vals[j];
