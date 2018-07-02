@@ -1,14 +1,13 @@
 #ifndef CTS_HPP
 #define CTS_HPP
 
-#define ORTH 4
-
 #include <vector>
 #include <iostream>
 
 using namespace std;
 
 extern int B;
+extern int ORTH;
 
 class Coo {
 
@@ -56,6 +55,26 @@ class Csr {
             this->iCount = csr.iCount;
         }
 };
+
+/*class Csr {
+
+    public:
+
+        vector<double> vals;
+        vector<int> idx;
+        vector<int> iCount;
+
+        Csr() {}
+
+        Csr(int valSize, int idxSize, int iCountSize) : vals(valSize, 0), idx(idxSize, 0), iCount(iCountSize, 0) {
+        }
+
+        void operator = (const Csr& csr) {
+            this->vals = csr.vals;
+            this->idx = csr.idx;
+            this->iCount = csr.iCount;
+        }
+};*/
 
 class Base {
 
@@ -136,20 +155,14 @@ class Node {
         Base base;
         Csr csr;
         int* cPtr;
-        int parent;
-        int offset;
 
         Node() {
             Base base;
             cPtr = NULL;
-            parent = -1;
-            offset = 0;
         }
 
         Node(const Node& node) {
             this->base = node.base;
-            this->parent = node.parent;
-            this->offset = node.offset;
             this->csr = node.csr;
             this->cPtr = new int[ORTH];
             for(int i = 0; i < ORTH; i++) {
@@ -157,41 +170,16 @@ class Node {
             }
         }
 
-        Node(Base base, int* cPtr, int parent) {
+        Node(Base base, int* cPtr) {
             this->base = base;
-            this->parent = parent;
-            this->offset = 0;
             this->cPtr = new int[ORTH];
             for(int i = 0; i < ORTH; i++) {
                 this->cPtr[i] = cPtr[i];
             }
         }
 
-        Node(Base base, Csr csr, int* cPtr, int parent) {
+        Node(Base base, Csr csr, int* cPtr) {
             this->base = base;
-            this->parent = parent;
-            this->offset = 0;
-            this->csr = csr;
-            this->cPtr = new int[ORTH];
-            for(int i = 0; i < ORTH; i++) {
-                this->cPtr[i] = cPtr[i];
-            }
-        }
-
-        Node(Base base, int* cPtr, int parent, int offset) {
-            this->base = base;
-            this->parent = parent;
-            this->offset = offset;
-            this->cPtr = new int[ORTH];
-            for(int i = 0; i < ORTH; i++) {
-                this->cPtr[i] = cPtr[i];
-            }
-        }
-
-        Node(Base base, Csr csr, int* cPtr, int parent, int offset) {
-            this->base = base;
-            this->parent = parent;
-            this->offset = offset;
             this->csr = csr;
             this->cPtr = new int[ORTH];
             for(int i = 0; i < ORTH; i++) {
@@ -208,8 +196,6 @@ class Node {
 
         void operator = (const Node& node) {
             this->base = node.base;
-            this->parent = node.parent;
-            this->offset = node.offset;
             this->csr = node.csr;
             this->cPtr = new int[ORTH];
             for(int i = 0; i < ORTH; i++) {
@@ -226,10 +212,8 @@ class Node {
                     cout << ", ";
                 }
             }
-            cout << ")(" << parent << ")";
-            cout << "(" << offset << ")";
             if(base.len <= B)
-                cout << "(" << csr.iCount[csr.iCount.size() - 1] << ")";
+                cout << ")(" << csr.iCount[B] << ")";
             cout << endl;
         }
 
@@ -242,24 +226,24 @@ class Node {
 
 class Sptree {
 
+        bool isAssemble;
+
         vector<Node> tree;
+
+        void assemble(const Csr& srcCsr1, const Csr& srcCsr2, int x, int y);
 
         int createSPTree(int idx, bool has_sibling, Coo* M, int lenM, Base base, int parent);
 
-        void mergeSptrees(const vector<Node>& tree1, const vector<Node>& tree2, const bool isMultiply, const int trueNodePos);
+        void multVectors(const vector<Node>& tree1, const vector<Node>& tree2);
 
-        int mergeTrees(const vector<Node>& tree1, const vector<Node>& tree2, const int pos1, const int pos2, const int parent);
+        void multParts(const vector<Node>& tree1, const vector<Node>& tree2,
+            const int pos1, const int pos2, const int pos);
 
-        int appendNode(const Base& base, const int trueNodePos, const int parent);
+        void multNodes(const vector<Node>& tree1, const vector<Node>& tree2, const int pos1, const int pos2,
+            const int xPos, const int yPos, const int pos);
 
-        void multiplySptrees(Sptree& tempA, Sptree& tempB, const vector<Node>& tree1, const vector<Node>& tree2,
-            const int pos1, const int pos2, const int parentPos, const int trueNodePos);
-
-        void multiplyParts(const vector<Node>& tree1, const vector<Node>& tree2, const int pos1, const int pos2,
-            const int parentPos, const int xPos, const int yPos, const int trueNodePos);
-
-        int multiplyTrees(const vector<Node>& tree1, const vector<Node>& tree2, const int pos1, const int pos2,
-            const int parent, const int orthant, const int trueNodePos);
+        void multLeaves(const vector<Node>& tree1, const vector<Node>& tree2, const int pos1, const int pos2,
+            const int pos);
 
     public:
 
@@ -270,7 +254,7 @@ class Sptree {
             this->tree = tree;
         }
 
-        vector<Node>& getTree() {
+        vector<Node> getTree() const {
             return tree;
         }
 
@@ -283,13 +267,9 @@ class Sptree {
             cout << endl;
         }
 
-        void multiply(const vector<Node>& tree1, const vector<Node>& tree2);
+        void multiply(const Sptree& spTree1, const Sptree& spTree2, Base base);
 
         void createCTS(Coo* M, int lenM, Base base);
-
-        void merge(const vector<Node>& tree1, const vector<Node>& tree2) {
-            mergeSptrees(tree1, tree2, false, 0);
-        }
 
         void clear() {
             tree.clear();

@@ -1,9 +1,10 @@
 CC=g++
-CFLAGS=-std=c++11 -O3 -Iinclude
+CFLAGS=-std=c++11 -O3 -fcilkplus -Iinclude
 
 .PHONY: all clean
 
-all: clean clear_cache cts cts_self cts_test data_gen
+all: clean cts_test data_gen
+#all: clean clear_cache cts cts_self cts_test data_gen
 
 cts:
 	$(CC) $(CFLAGS) src/cts.cpp src/ctsMain.cpp -o bin/cts

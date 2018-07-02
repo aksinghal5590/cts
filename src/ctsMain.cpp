@@ -70,11 +70,11 @@ int main(int argc, char *argv[]) {
     }
     double density = (double)elemCount/((double)n*n);
     if(density < 0.0005) {
-        B = size/64;
+        B = size/32;
     } else if(density > 0.0005 && density < 0.005) {
-        B = size/256;
+        B = size/64;
     } else {
-        B = size/512;
+        B = size/128;
     }
     B = (B <= 128 ? 128 : B);
     Base base(0, 0, size);
