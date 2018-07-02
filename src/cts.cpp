@@ -17,15 +17,13 @@ extern double mmTime;
 int count = 0;
 
 vector<int> *assembledSet;
+bool* workspace;
+int* wlist;
+int w_size;
 
 void Sptree::assemble(const Csr& srcCsr1, const Csr& srcCsr2, int x, int y) {
 
-    auto start = chrono::system_clock::now();
-    //assemble
-    bool* workspace = new bool[B]();
-    int* wlist = new int[B]();
-    int w_size = 0;
-
+    //auto start = chrono::system_clock::now();
     for (int i = 0; i < B; i++) {
         for (int B2_pos = srcCsr1.iCount[i]; B2_pos < srcCsr1.iCount[i+1]; B2_pos++) {
             int k = srcCsr1.idx[B2_pos];
@@ -45,44 +43,13 @@ void Sptree::assemble(const Csr& srcCsr1, const Csr& srcCsr2, int x, int y) {
         w_size = 0;
     }
 
-    delete[] workspace;
-    delete[] wlist;
-
-    auto end = chrono::system_clock::now();
-    chrono::duration<double, milli>mm_ms = end - start;
-    mmTime += mm_ms.count();
+    //auto end = chrono::system_clock::now();
+    //chrono::duration<double, milli>mm_ms = end - start;
+    //mmTime += mm_ms.count();
 }
 
 void multiplyMatrices(const Csr& srcCsr1, const Csr& srcCsr2, Csr& targetCsr) {
 
-    auto start = chrono::system_clock::now();
-    /* //assemble
-    bool* workspace = new bool[B]();
-    int* wlist = new int[B]();
-    int w_size = 0;
-
-    targetCsr.iCount[0] = 0;
-    for (int i = 0; i < B; i++) {
-        for (int B2_pos = srcCsr1.iCount[i]; B2_pos < srcCsr1.iCount[i+1]; B2_pos++) {
-            int k = srcCsr1.idx[B2_pos];
-            for (int C2_pos = srcCsr2.iCount[k]; C2_pos < srcCsr2.iCount[k+1]; C2_pos++) {
-                int j = srcCsr2.idx[C2_pos];
-                if (!workspace[j]) {
-                    wlist[w_size++] = j;
-                    workspace[j] = true;
-                }
-            }
-        }
-        targetCsr.iCount[i+1] = targetCsr.iCount[i] + w_size;
-        for (int w_pos = 0; w_pos < w_size; w_pos++) {
-            int j = wlist[w_pos];
-            targetCsr.idx[targetCsr.iCount[i] + w_pos] = j;
-            workspace[j] = false;
-        }
-        w_size = 0;
-    }*/
-
-    // compute
     double* tempVals = new double[B]();
 
     for (int i = 0; i < B; i++) {
@@ -99,13 +66,6 @@ void multiplyMatrices(const Csr& srcCsr1, const Csr& srcCsr2, Csr& targetCsr) {
             tempVals[j] = 0;
         }
     }
-
-    //targetCsr.vals.resize(targetCsr.iCount[B]);
-    //targetCsr.idx.resize(targetCsr.iCount[B]);
-
-    auto end = chrono::system_clock::now();
-    chrono::duration<double, milli>mm_ms = end - start;
-    mmTime += mm_ms.count();
 
     delete[] tempVals;
 }
@@ -252,31 +212,35 @@ void Sptree::multiply(const Sptree& spTree1, const Sptree& spTree2, Base base) {
     isAssemble = true;
 
     assembledSet = new vector<int>[base.len];
+    workspace = new bool[B]();
+    wlist = new int[B]();
+    w_size = 0;
 
     multVectors(spTree1.getTree(), spTree2.getTree());
 
     int elemCount = 0;
     for(int i = 0; i < base.len; i++) {
+        sort(assembledSet[i].begin(), assembledSet[i].end());
+        assembledSet[i].erase(unique(assembledSet[i].begin(), assembledSet[i].end()), assembledSet[i].end());
         elemCount += assembledSet[i].size();
     }
     Coo* M  = new Coo[elemCount];
     int k = 0;
     for(int i = 0; i < base.len; i++) {
-        sort( assembledSet[i].begin(), assembledSet[i].end() );
-        assembledSet[i].erase(unique(assembledSet[i].begin(), assembledSet[i].end()), assembledSet[i].end());
         for(int j = 0; j < assembledSet[i].size(); j++) {
             M[k].x = i;
             M[k].y = assembledSet[i][j];
             M[k].val = 0.0;
             k++;
         }
-
     }
     createCTS(M, elemCount, base);
 
     isAssemble = false;
     multVectors(spTree1.getTree(), spTree2.getTree());
 
+    delete[] workspace;
+    delete[] wlist;
     delete[] assembledSet;
 }
 
@@ -324,7 +288,10 @@ void Sptree::multNodes(const vector<Node>& tree1, const vector<Node>& tree2,
             int xi = ((i / 2) * 2) + xPos;
             int yi = (i % 2) + yPos;
             if(node.cPtr[i] > -1 && node1.cPtr[xi] > -1 && node2.cPtr[yi] > -1) {
-                if(tree1[node1.cPtr[xi]].base.len == tree2[node2.cPtr[yi]].base.len) {
+                if(tree[node.cPtr[i]].base.len > tree1[node1.cPtr[xi]].base.len && tree[node.cPtr[i]].base.len > tree2[node2.cPtr[yi]].base.len) {
+                    multLeaves(tree1, tree2, pos1, pos2, node.cPtr[i]);
+                }
+                else if(tree1[node1.cPtr[xi]].base.len == tree2[node2.cPtr[yi]].base.len) {
                     multLeaves(tree1, tree2, node1.cPtr[xi], node2.cPtr[yi], node.cPtr[i]);
                 } else if(tree1[node1.cPtr[xi]].base.len > tree2[node2.cPtr[yi]].base.len) {
                     multLeaves(tree1, tree2, node1.cPtr[xi], pos2, node.cPtr[i]);

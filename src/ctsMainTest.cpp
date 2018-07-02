@@ -3,6 +3,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <iostream>
+#include <set>
 #include <sstream>
 #include <type_traits>
 #include <vector>
@@ -73,14 +74,21 @@ int main(int argc, char *argv[]) {
         mat1[i].val = inList[i].val;
     }
 
-    vector<Mtx> list;
+    vector<Mtx> dupList, list;
     for(int i = 0; i < n * factor; i++) {
-        list.emplace_back(Mtx(rand() % size, rand() % size, (rand() % 200) - 100));
+        dupList.emplace_back(Mtx(rand() % size, rand() % size, (rand() % 200) - 100));
     }
-    sort(list.begin(), list.end());
-    for(int i = 0; i < list.size() - 1; i++) {
-        if((list[i].x == list[i+1].x) && (list[i].y == list[i+1].y)) {
-            list.erase(list.begin() + i + 1);
+    sort(dupList.begin(), dupList.end());
+    set<int> remove;
+    for(int i = 1; i < dupList.size(); i++) {
+        if((dupList[i].x == dupList[i-1].x) && (dupList[i].y == dupList[i-1].y)) {
+            remove.insert(i);
+        }
+    }
+    for(int i = 0; i < dupList.size(); i++) {
+        if(remove.find(i) != remove.end()) {
+        } else {
+            list.emplace_back(dupList[i]);
         }
     }
     Coo *mat2 = new Coo[list.size()];
@@ -110,7 +118,7 @@ int main(int argc, char *argv[]) {
 
     cout << "treeZ node count = " << treeZ.getTree().size() << endl;
 
-    cout << "Time taken by assemble and multiply = " << mmTime << " ms" << endl;
+    //cout << "Time taken by assembly: " << mmTime << " ms" << endl;
     cout << "Size = " << size
     << " Base = " << B
     << " Total Time taken: " << total_ms.count() << " ms" << endl;

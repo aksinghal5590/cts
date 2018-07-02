@@ -214,6 +214,8 @@ class Node {
             }
             if(base.len <= B)
                 cout << ")(" << csr.iCount[B] << ")";
+            else
+                cout << ")";
             cout << endl;
         }
 
