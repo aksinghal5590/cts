@@ -3,16 +3,13 @@ CFLAGS=-std=c++11 -O3 -I${TACC_PAPI_INC} -Iinclude
 
 .PHONY: all clean
 
-all: clean clear_cache cts cts_p cts_self cts_test data_gen
+all: clean clear_cache cts cts_p cts_test data_gen
 
 cts:
 	$(CC) $(CFLAGS) src/cts.cpp src/ctsMain.cpp -o bin/cts
 
 cts_p:
 	$(CC) $(CFLAGS) src/cts.cpp src/ctsMainPAPI.cpp -o bin/cts_p ${TACC_PAPI_LIB}/libpapi.a
-
-cts_self:
-	$(CC) $(CFLAGS) src/cts.cpp src/ctsMainSelf.cpp -o bin/cts_self
 
 cts_test:
 	$(CC) $(CFLAGS) src/cts.cpp src/ctsMainTest.cpp -o bin/cts_test

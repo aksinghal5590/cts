@@ -7,7 +7,6 @@
 #include <sstream>
 #include <type_traits>
 #include <vector>
-#include <cilk/cilk.h>
 
 #include "cts.hpp"
 
@@ -16,18 +15,19 @@ using namespace std;
 int B;
 int ORTH = 4;
 double mmTime;
+int zeros = 0;
 
-void mmIKJ(int *mZ, int row0, int col0, int *mX, int row1, int col1, int *mY, int row2, int col2, int n, int size) {
-    cilk_for (int i = 0; i < n; ++i) {
-        cilk_for (int k = 0; k < n; ++k) {
-            cilk_for (int j = 0; j < n; ++j) {
+void mmIKJ(double *mZ, int row0, int col0, double *mX, int row1, int col1, double *mY, int row2, int col2, int n, int size) {
+    for (int i = 0; i < n; ++i) {
+        for (int k = 0; k < n; ++k) {
+            for (int j = 0; j < n; ++j) {
                 mZ[(i + row0) * size + col0 + j] += mX[(row1 + i) * size + col1 + k] * mY[(row2 + k) * size + col2 + j];
             }
         }
     }
 }
 
-void printMatrix(int *m, int row, int col) {
+void printMatrix(double *m, int row, int col) {
     for (int i = 0; i < row; ++i) {
         for (int j = 0; j < col; ++j) {
             cout << m[i * col + j] << " ";
@@ -59,6 +59,11 @@ int main(int argc, char *argv[]) {
         ceil2 *= 2;
     }
 
+
+    double *mX = new double[size * size]();
+    double *mY = new double[size * size]();
+    double *mZ = new double[size * size]();
+
     int x, y;
     double val;
     vector<Mtx> inList;
@@ -72,6 +77,7 @@ int main(int argc, char *argv[]) {
         mat1[i].x = inList[i].x - 1;
         mat1[i].y = inList[i].y - 1;
         mat1[i].val = inList[i].val;
+        mX[mat1[i].x * size + mat1[i].y] = mat1[i].val;
     }
 
     vector<Mtx> dupList, list;
@@ -96,10 +102,11 @@ int main(int argc, char *argv[]) {
         mat2[i].x = list[i].x;
         mat2[i].y = list[i].y;
         mat2[i].val = list[i].val;
+        mY[mat2[i].x * size + mat2[i].y] = mat2[i].val;
     }
 
     Sptree treeX, treeY, treeZ;
-    B = 1024;
+    B = 8;
     Base baseX(0, 0, size);
 
     treeX.createCTS(mat1, elemCount, baseX);
@@ -135,17 +142,19 @@ int main(int argc, char *argv[]) {
                 }
             }
         }
-    }
+    }*/
+    cout << "Zeros = " << zeros << endl;
+    treeZ.printValues();
     mmIKJ(mZ, 0, 0, mX, 0, 0, mY, 0, 0, size, size);
-    cout << endl << endl;
-    printMatrix(mZ, size, size);
-    cout << endl << endl;
-    printMatrix(mT, size, size);
+    //cout << endl << endl;
+    //printMatrix(mZ, size, size);
+    //cout << endl << endl;
+    //printMatrix(mT, size, size);
 
     int resultCount = 0;
     for(int i = 0; i < size; i++) {
         for(int j = 0; j < size; j++) {
-            if(mZ[i*size + j] > 0) {
+            if(mZ[i*size + j] != 0) {
                 resultCount++;
             }
         }
@@ -154,7 +163,7 @@ int main(int argc, char *argv[]) {
     int k = 0;
     for(int i = 0; i < size; i++) {
         for(int j = 0; j < size; j++) {
-            if(mZ[i*size + j] > 0) {
+            if(mZ[i*size + j] != 0) {
                 mat3[k].x = i;
                 mat3[k].y = j;
                 mat3[k].val = mZ[i*size + j];
@@ -165,13 +174,13 @@ int main(int argc, char *argv[]) {
     Sptree treeTest;
     treeTest.createCTS(mat3, resultCount, baseX);
     treeTest.printValues();
-    delete[] mat3;*/
+    delete[] mat3;
 
     delete[] mat1;
     delete[] mat2;
-    //delete[] mX;
-    //delete[] mY;
-    //delete[] mZ;
+    delete[] mX;
+    delete[] mY;
+    delete[] mZ;
     //delete[] mT;
     return 0;
 }

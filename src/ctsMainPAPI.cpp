@@ -3,6 +3,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <iostream>
+#include <set>
 #include <sstream>
 #include <type_traits>
 #include <vector>
@@ -13,8 +14,9 @@
 using namespace std;
 
 int B;
-double mmTime;
-Sptree treeZ;
+int ORTH = 4;
+double mmTime = 0;
+
 int main(int argc, char *argv[]) {
 
     double fraction;
@@ -28,7 +30,7 @@ int main(int argc, char *argv[]) {
     cin >> n >> m >> elemCount;
     n = (n >= m) ? n : m;
     int factor = (int)((double)n * fraction);
-        int size = 0;
+    int size = 0;
     int ceil2 = 2;
     while(1) {
         if(n <= ceil2) {
@@ -37,6 +39,7 @@ int main(int argc, char *argv[]) {
         }
         ceil2 *= 2;
     }
+
 
     int x, y;
     double val;
@@ -53,14 +56,21 @@ int main(int argc, char *argv[]) {
         mat1[i].val = inList[i].val;
     }
 
-    vector<Mtx> list;
+    vector<Mtx> dupList, list;
     for(int i = 0; i < n * factor; i++) {
-        list.emplace_back(Mtx(rand() % size, rand() % size, (rand() % 200) - 100));
+        dupList.emplace_back(Mtx(rand() % size, rand() % size, (rand() % 200) - 100));
     }
-    sort(list.begin(), list.end());
-    for(int i = 0; i < list.size() - 1; i++) {
-        if((list[i].x == list[i+1].x) && (list[i].y == list[i+1].y)) {
-            list.erase(list.begin() + i + 1);
+    sort(dupList.begin(), dupList.end());
+    set<int> remove;
+    for(int i = 1; i < dupList.size(); i++) {
+        if((dupList[i].x == dupList[i-1].x) && (dupList[i].y == dupList[i-1].y)) {
+            remove.insert(i);
+        }
+    }
+    for(int i = 0; i < dupList.size(); i++) {
+        if(remove.find(i) != remove.end()) {
+        } else {
+            list.emplace_back(dupList[i]);
         }
     }
     Coo *mat2 = new Coo[list.size()];
@@ -69,22 +79,21 @@ int main(int argc, char *argv[]) {
         mat2[i].y = list[i].y;
         mat2[i].val = list[i].val;
     }
+
     double density = (double)elemCount/((double)n*n);
     if(density < 0.0005) {
-        B = size/64;
+        B = size/32;
     } else if(density > 0.0005 && density < 0.005) {
-        B = size/256;
+        B = size/64;
     } else {
-        B = size/512;
+        B = size/128;
     }
     B = (B <= 128 ? 128 : B);
-    Base base(0, 0, size);
+    Base baseX(0, 0, size);
 
-    Sptree treeX;
-    Sptree treeY;
-
-    treeX.createCTS(mat1, elemCount, base);
-    treeY.createCTS(mat2, list.size(), base);
+    Sptree treeX, treeY, treeZ;
+    treeX.createCTS(mat1, elemCount, baseX);
+    treeY.createCTS(mat2, list.size(), baseX);
 
     cout << "treeX node count = " << treeX.getTree().size() << endl;
     cout << "treeY node count = " << treeY.getTree().size() << endl;
@@ -94,11 +103,11 @@ int main(int argc, char *argv[]) {
     PAPI_library_init(PAPI_VER_CURRENT);
     PAPI_start_counters(PAPI_events, 3);
 
-    ::treeZ.multiply(treeX.getTree(), treeY.getTree());
+    treeZ.multiply(treeX.getTree(), treeY.getTree(), baseX);
 
     PAPI_read_counters(counters, 3);
 
-    cout << "treeZ node count = " << ::treeZ.getTree().size() << endl;
+    cout << "treeZ node count = " << treeZ.getTree().size() << endl;
 
     cout << "Size = " << size
     << " Base = " << B
