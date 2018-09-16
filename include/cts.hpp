@@ -9,6 +9,7 @@ using namespace std;
 extern int B;
 extern int ORTH;
 
+// coordinate format
 class Coo {
 
     public:
@@ -16,6 +17,7 @@ class Coo {
         double val;
 };
 
+//Matrix format to process input
 class Mtx {
 
     public:
@@ -36,6 +38,7 @@ class Mtx {
         }
 };
 
+//Compressed Sparse Row format
 class Csr {
 
     public:
@@ -46,6 +49,10 @@ class Csr {
 
         Csr() {}
 
+        /*
+        TODO: the initialization step can be removed from the constructor, only defining the size is enough
+        but this would also require change in the multiplication step
+        */
         Csr(int valSize, int idxSize, int iCountSize) : vals(valSize, 0), idx(idxSize, 0), iCount(iCountSize, 0) {
         }
 
@@ -56,26 +63,7 @@ class Csr {
         }
 };
 
-/*class Csr {
-
-    public:
-
-        vector<double> vals;
-        vector<int> idx;
-        vector<int> iCount;
-
-        Csr() {}
-
-        Csr(int valSize, int idxSize, int iCountSize) : vals(valSize, 0), idx(idxSize, 0), iCount(iCountSize, 0) {
-        }
-
-        void operator = (const Csr& csr) {
-            this->vals = csr.vals;
-            this->idx = csr.idx;
-            this->iCount = csr.iCount;
-        }
-};*/
-
+//A base object defines a quadrant of a matrix
 class Base {
 
     public:
@@ -114,6 +102,7 @@ class Base {
             cout << "(" << x << ", " << y << ", " << len << ")";
         }
 
+        //Returns the quadrant which the point(x, y) belongs to inside the current base
         int getIOrthant(const int x, const int y) {
             if ((x < this->x) || (x >= (this->x + this->len)) || (y < this->y) || (y >= (this->y + this->len))) {
                 cout << "Input: " << x << ", " << y << " Base: ";
@@ -130,6 +119,7 @@ class Base {
             return iOrthant;
         }
 
+        //Returns a sub-base of the current base as per the orthant(iOrt) value
         Base getBase(const int iOrt) {
             if (iOrt == 0)
                 return {x, y, len/2};
@@ -232,18 +222,59 @@ class Sptree {
 
         vector<Node> tree;
 
+        /*
+        Creates a list of the distinct non-zero positions(x,y) of the resultant tree.
+        srcCsr1 - CSR of input tree 1
+        srcCSR2 - CSR of input tree 2
+        x - the current quadrant's x-coordinate
+        y - the current quadrant's y-coordinate
+        */
         void assemble(const Csr& srcCsr1, const Csr& srcCsr2, int x, int y);
 
+        /*
+        Creates the tree from the given parameters, it is assumed the tree is empty before creation
+        idx - index of the current node in the tree
+        has_sibling - true if the current node has a sibling; false otherwise
+        M - base pointer of an array of the non-zero elements
+        lenM - size of M
+        base - size of the square matrix to be created
+        parent - index of the parent node of the new node which is being created, -1 if root node
+        */
         int createSPTree(int idx, bool has_sibling, Coo* M, int lenM, Base base, int parent);
 
+        /*
+        wrapper function to call multParts with all positions as 0
+        */
         void multVectors(const vector<Node>& tree1, const vector<Node>& tree2);
 
+        /*
+        wrapper function to make 2 calls to multNodes
+        tree1, tree2 - input trees as vectors
+        pos1 - position of the first tree's node to be multiplied
+        pos1 - position of the second tree's node to be multiplied
+        pos - position of the new node in the resultant tree
+        */
         void multParts(const vector<Node>& tree1, const vector<Node>& tree2,
             const int pos1, const int pos2, const int pos);
 
+        /*
+        Checks which child nodes of the unput nodes are to be multiplied
+        tree1, tree2 - input trees as vectors
+        pos1 - position of the first tree's node to be multiplied
+        pos1 - position of the second tree's node to be multiplied
+        xpos, ypos - values to identify which child nodes to multiply
+        pos - position of the new node in the resultant tree
+        */
         void multNodes(const vector<Node>& tree1, const vector<Node>& tree2, const int pos1, const int pos2,
             const int xPos, const int yPos, const int pos);
 
+        /*
+        Identifies if the input nodes are leaf nodes; if they are actually multiply them, else call multParts
+        tree1, tree2 - input trees as vectors
+        pos1 - position of the first tree's node to be multiplied
+        pos1 - position of the second tree's node to be multiplied
+        pos - position of the new node in the resultant tree
+        */
         void multLeaves(const vector<Node>& tree1, const vector<Node>& tree2, const int pos1, const int pos2,
             const int pos);
 
@@ -269,8 +300,16 @@ class Sptree {
             cout << endl;
         }
 
+        /*
+        Function to be called publicly to multiply two trees
+        spTree1, spTree2 - input tree
+        base - to provide size of the resultant matrix
+        */
         void multiply(const Sptree& spTree1, const Sptree& spTree2, Base base);
 
+        /*
+        Recursive function to create a tree from input coo array
+        */
         void createCTS(Coo* M, int lenM, Base base);
 
         void clear() {
