@@ -130,26 +130,26 @@ int main(int argc, char *argv[]) {
     << " Base = " << B
     << " Total Time taken: " << total_ms.count() << " ms" << endl;
 
-    /*int *mT = new int[size*size]();
-    for(int i = 0; i < ::treeZ.getTree().size(); i++) {
-        Node node = ::treeZ.getTree()[i];
+    double *mT = new double[size*size]();
+    for(int i = 0; i < treeZ.getTree().size(); i++) {
+        Node node = treeZ.getTree()[i];
         if(node.base.len <= B) {
             int row = node.base.x;
             int col = node.base.y;
             for(int k = 0; k < B; k++) {
                 for(int l = node.csr.iCount[k]; l < node.csr.iCount[k+1]; l++) {
-                    mT[(row + k)*size + col + node.csr.idx[l]] = (int)node.csr.vals[l];
+                    mT[(row + k)*size + col + node.csr.idx[l]] = node.csr.vals[l];
                 }
             }
         }
-    }*/
+    }
     cout << "Zeros = " << zeros << endl;
     treeZ.printValues();
     mmIKJ(mZ, 0, 0, mX, 0, 0, mY, 0, 0, size, size);
-    //cout << endl << endl;
-    //printMatrix(mZ, size, size);
-    //cout << endl << endl;
-    //printMatrix(mT, size, size);
+    cout << endl << endl;
+    printMatrix(mZ, size, size);
+    cout << endl << endl;
+    printMatrix(mT, size, size);
 
     int resultCount = 0;
     for(int i = 0; i < size; i++) {
@@ -181,6 +181,6 @@ int main(int argc, char *argv[]) {
     delete[] mX;
     delete[] mY;
     delete[] mZ;
-    //delete[] mT;
+    delete[] mT;
     return 0;
 }
